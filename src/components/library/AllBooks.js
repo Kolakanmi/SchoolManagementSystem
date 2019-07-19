@@ -1,0 +1,76 @@
+import React from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faSync, faAngleDown, faTimes, faEye, faEdit, faDumpster} from '@fortawesome/free-solid-svg-icons';
+
+function AllBooksTable(props){
+
+  return(
+    <div className='flex-fill' style={{display: 'flex', overflowX: 'auto', fontSize: '0.65rem', fontWeight: 'bold'}}>
+      <table className='table'>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Book Title</th>
+            <th>Author</th>
+            <th>Subject</th>
+            <th>Class</th>
+            <th>Edition</th>
+            <th>Published By</th>
+            <th>Supplier's Name</th>
+            <th>Supplier's No</th>
+            <th>Upload Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1001</td>
+            <td>New General Mathematics</td>
+            <td>Kolakanmi Apanisile</td>
+            <td>Mathematics</td>
+            <td>JSS1</td>
+            <td>Second</td>
+            <td>Longman</td>
+            <td>Kolakanmi Apanisile</td>
+            <td>08099699976</td>
+            <td>01/01/2017</td>
+            <td className='flex-fill' style={{minWidth: '80px'}}>
+              <FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/>
+              <FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}/>
+              <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}}/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AllBooks(props){
+
+  return(
+    <div className='d-flex flex-column flex-fill px-2 my-3 shadow' style={{backgroundColor: 'white', width: '100%', maxHeight: '300px', display: 'flex', overflowX: 'auto'}}>
+      <div className='d-flex'>
+        <strong className='align-self-center'>All Students</strong>
+        <div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
+          <input className='form-control form-control-sm mr-1'/>
+          <input className='form-control form-control-sm mr-1'/>
+          <button className='form-control form-control-sm' style={{backgroundColor: '#264d73', color: 'white', maxWidth: '60px'}}>Search</button>
+        </div>
+        <span className='ml-auto align-self-center flex-wrap'>
+          <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} />
+          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
+          <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}}/>
+        </span>
+        
+      </div>
+      <hr style={{margin:'0px', backgroundColor: 'black'}}/>
+      <div style={{display: 'flex', overflowX: 'auto'}}>
+        <AllBooksTable/>  
+      </div>
+
+    </div>
+  );
+}
+
+export default AllBooks;

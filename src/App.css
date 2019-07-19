@@ -1,4 +1,4 @@
-.App {
+/* .App {
   text-align: center;
 }
 
@@ -31,3 +31,14 @@
     transform: rotate(360deg);
   }
 }
+ */
+
+ a {
+   text-decoration: none;
+   color: white !important;
+ }
+
+ a:hover {
+   text-decoration: none !important;
+   color: inherit !important;
+ }

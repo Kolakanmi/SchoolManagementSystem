@@ -1,0 +1,10 @@
+.dropitem:hover {
+  color: grey !important;
+  text-decoration: none;
+  background-color: inherit;
+}
+.dropitem:focus, .dropitem:active {
+  color: #ffcc00 !important;
+  text-decoration: none;
+  background-color: inherit;
+}
