@@ -3,14 +3,13 @@ var SidebarItemsArray = [
   { 
     id: 1,
     name: 'Dashboard',
-    drops: ['Admin', 'Students', 'Parents', 'Teachers'],
-    link: ['/dashboard', '/dashboard/student', '/dashboard/parent', '/dashboard/teacher']
+    link: ['/dashboard']
   },
   {
     id: 2,
     name: 'Students',
-    drops: ['All Students', 'Student Details', 'Admission Form', 'Promotion'],
-    link: ['/students/all-students', '/students/student-details/', '/students/add-student', '/students/student-promotion']
+    drops: ['All Students', 'Admission Form', 'Promotion'],
+    link: ['/students/all-students', '/students/add-student', '/students/student-promotion']
   },
   { 
     id: 3,
@@ -26,8 +25,7 @@ var SidebarItemsArray = [
   { 
     id: 5,
     name: 'Library',
-    drops: ['All Books', 'Add Book'],
-    link: ['/library/all-books', '/library/add-book']
+    link: ['/library/add-book']
   },
   { 
     id: 6,
@@ -38,8 +36,7 @@ var SidebarItemsArray = [
   { 
     id: 7,
     name: 'Class',
-    drops: ['Add Class', 'All Classes'],
-    link: ['/class/add-class', '/class/all-classes']
+    link: ['/class/add-class']
   },
   { 
     id: 8,
@@ -54,7 +51,7 @@ var SidebarItemsArray = [
   { 
     id: 10,
     name: 'Attendance',
-    link: ['/']
+    link: ['/attendance']
   },
   { 
     id: 11,
@@ -79,11 +76,6 @@ var SidebarItemsArray = [
   },
   { 
     id: 15,
-    name: 'Message',
-    link: ['/']
-  },
-  { 
-    id: 16,
     name: 'Profile',
     link: ['/profile']
   }

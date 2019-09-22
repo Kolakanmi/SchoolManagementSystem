@@ -1,12 +1,27 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes, faImage, faEye, faEdit, faDumpster} from '@fortawesome/free-solid-svg-icons';
+import {faSync, faAngleDown, faTimes, faEye, faEdit, faDumpster} from '@fortawesome/free-solid-svg-icons';
+import { AppContext } from '../../contexts/AppContext';
+import useCollapseState from '../../lib/CollapseState';
+import { Link } from 'react-router-dom/cjs/react-router-dom';
+import axios from 'axios'
 
-function AllTeachersTable(props){
+
+function AllTeachersTable({teachers, dispatch}){
+
+  async function deleteTeacher(teachId){
+    await axios.get('http://localhost:8080/delete-teacher/'+teachId)
+        .then(result => {
+          if (result.status === 200){
+            let action = {type: 'DELETE_TEACHER', payload: teachId}
+            dispatch(action)
+          }
+        })
+  }
 
   return(
     <div className='flex-fill' style={{display: 'flex', overflowX: 'auto', fontSize: '0.65rem', fontWeight: 'bold'}}>
-      <table className='table'>
+      <table className='table table-bordered'>
         <thead>
           <tr>
             <th>Empl No</th>
@@ -18,32 +33,32 @@ function AllTeachersTable(props){
             <th>Section</th>
             <th>Address</th>
             <th>Date of Birth</th>
-            <th>Mobile No</th>
+            <th>Mobile Number</th>
             <th>Email</th>
             <th>Empl Date</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1000</td>
-            <td><FontAwesomeIcon icon={faImage}/></td>
-            <td>Kolakanmi Apanisile</td>
-            <td>Male</td>
-            <td>Mathematics</td>
-            <td>Finished</td>
-            <td>A</td>
-            <td>4, Smith Lanre Taiwo Street</td>
-            <td>09/07/1997</td>
-            <td>08083330801</td>
-            <td>apanisilekolakanmi@gmail.com</td>
-            <td>01/01/2012</td>
+          {teachers.sort((a,b) => {return a.employmentNumber - b.employmentNumber}).map(teacher => {return <tr key={teacher.employmentNumber}>
+            <td>{teacher.employmentNumber}</td>
+            <td><img className='rounded' alt="Teacher" style={{width: '25px', height: '25px'}} src={teacher.picture}/></td>
+            <td>{teacher.firstName + ' ' + teacher.lastName}</td>
+            <td>{teacher.gender}</td>
+            <td>{teacher.subjects}</td>
+            <td>{teacher.class}</td>
+            <td>{teacher.section} </td>
+            <td>{teacher.address}</td>
+            <td>{new Date(teacher.dateOfBirth).toDateString()}</td>
+            <td>{teacher.mobileNumber} </td>
+            <td>{teacher.email} </td>
+            <td>{new Date(teacher.employmentDate).toDateString()}</td>
             <td className='flex-fill' style={{minWidth: '80px'}}>
-              <FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/>
-              <FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}/>
-              <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}}/>
+              <Link to={'/teachers/teacher-details/'+teacher.employmentNumber}><FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/></Link>
+              <Link to={'/teachers/edit-teacher/'+teacher.employmentNumber}><FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}/></Link>
+              <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}} onClick={() => deleteTeacher(teacher.employmentNumber)}/>
             </td>
-          </tr>
+          </tr>})}
         </tbody>
       </table>
     </div>
@@ -52,25 +67,37 @@ function AllTeachersTable(props){
 
 function AllTeachers(props){
 
+  const [state, dispatch] = useContext(AppContext);
+  const {teachers} = state;
+  const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
+
+  const collapsableStyle = {
+    display: isCollapse ? 'none': 'flex'
+  }
+
+  const closeStyle = {
+    display: isClosed ? 'none': 'flex'
+  }
+
   return(
-    <div className='d-flex flex-column flex-fill px-2 my-3 shadow' style={{backgroundColor: 'white', width: '100%', maxHeight: '300px', display: 'flex', overflowX: 'auto'}}>
+    <div className='flex-column flex-fill px-2 my-3 shadow' style={{...closeStyle,backgroundColor: 'white', width: '100%', maxHeight: '300px', overflowX: 'auto'}}>
       <div className='d-flex'>
         <strong className='align-self-center'>All Teachers</strong>
-        <div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
+       {/* <div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
           <input className='form-control form-control-sm mr-1'/>
           <input className='form-control form-control-sm mr-1'/>
           <button className='form-control form-control-sm' style={{backgroundColor: '#264d73', color: 'white', maxWidth: '60px'}}>Search</button>
-        </div>
+        </div>*/}
         <span className='ml-auto align-self-center flex-wrap'>
-          <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} />
+          <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={collapseButton} />
           <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
-          <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}}/>
+          <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={closeButton}/>
         </span>
         
       </div>
       <hr style={{margin:'0px', backgroundColor: 'black'}}/>
-      <div style={{display: 'flex', overflowX: 'auto'}}>
-        <AllTeachersTable/>  
+      <div style={{...collapsableStyle, overflowX: 'auto'}}>
+        <AllTeachersTable teachers={teachers} dispatch={dispatch}/>  
       </div>
 
     </div>

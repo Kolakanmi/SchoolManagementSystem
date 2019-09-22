@@ -1,5 +1,5 @@
-import React from 'react';
-import {Route, Switch} from 'react-router-dom';
+import React, {useEffect, useContext} from 'react';
+import {Route, Switch, withRouter, Link} from 'react-router-dom';
 import Dashboard from './dashboard/Dashboard';
 import StudentsDashboard from './dashboard/StudentsDashboard';
 import ParentsDashboard from './dashboard/ParentsDashboard';
@@ -26,46 +26,56 @@ import Transport from './transport/Transport';
 import Hostel from './hostel/Hostel';
 import Notice from './notice/Notice';
 import Profile from './profile/Profile';
+import LoginPage from './Login';
+import {AppContext} from '../contexts/AppContext';
+import axios from 'axios'
+import Attendance from "./attendance/Attendance";
+import PrivateRoute from "./PrivateRoute";
+import Sidebar from "./Sidebar";
 
-function RouterView(props){
+function RouterView({isOpen, setIsOpen}) {
 
-  return(
-    <div className='px-sm-3 py-4'>
-      <Switch>
-        <Route exact path='/dashboard' component= {Dashboard}/>
-        <Route path='/dashboard/student' component= {StudentsDashboard}/>
-        <Route path='/dashboard/parent' component= {ParentsDashboard}/>
-        <Route path='/students/all-students' component= {AllStudents}/>
-        <Route path='/students/student-details/:id' render={
-          ({match}) => {
-            if (match.params.id)
-            return(<StudentDetails/>)
-          }
-        }/>
-        <Route path='/students/add-student' component={AddStudent}/>
-        <Route path='/students/student-promotion' component={StudentPromotion}/>
-        <Route path='/teachers/all-teachers' component={AllTeachers}/>
-        <Route path='/teachers/teacher-details' component={TeacherDetails}/>
-        <Route path='/teachers/add-teacher' component={AddTeacher}/>
-        <Route path='/parents' component={AllParents}/>
-        <Route path='/library/all-books' component={AllBooks}/>
-        <Route path='/library/add-book' component={AddBook}/>
-        <Route path='/finance/fees' component={Fees}/>
-        <Route path='/finance/other-earnings' component={OtherEarnings}/>
-        <Route path='/finance/create-fees-payment' component={CreateFeesPayment}/>
-        <Route path='/finance/all-expenses' component={AllExpenses}/>
-        <Route path='/finance/add-expense' component={AddExpense}/>
-        <Route path='/class/add-class' component={AddClass}/>
-        <Route path='/class/all-classes' component={AllClasses}/>
-        <Route path='/subjects/all-subjects' component={Subjects}/>
-        <Route path='/exams/grades' component={Grades}/>
-        <Route path='/transport' component={Transport}/>
-        <Route path='/hostel' component={Hostel}/>
-        <Route path='/notice' component={Notice}/>
-        <Route path='/profile' component={Profile}/>
-      </Switch>
-    </div>
-  );
+
+    return (
+        <div className='px-sm-3 py-4' onClick={() => {
+            if (isOpen === true) {
+              setIsOpen(!isOpen)
+            }
+        }}>
+
+                <Route exact path='/' component={Dashboard}/>
+                <Route exact path='/dashboard' component={Dashboard}/>
+                <Route exact path='/dashboard/student' component={StudentsDashboard}/>
+                <Route exact path='/dashboard/parent' component={ParentsDashboard}/>
+                <Route exact path='/students/all-students' component={AllStudents}/>
+                <Route exact path='/students/student-details/:id' component={StudentDetails}/>
+                <Route exact path='/students/add-student' component={AddStudent}/>
+                <Route exact path='/students/edit-student/:id' component={AddStudent}/>
+                <Route exact path='/students/student-promotion' component={StudentPromotion}/>
+                <Route exact path='/teachers/all-teachers' component={AllTeachers}/>
+                <Route exact path='/teachers/teacher-details/:id' component={TeacherDetails}/>
+                <Route exact path='/teachers/add-teacher' component={AddTeacher}/>
+                <Route exact path='/teachers/edit-teacher/:id' component={AddTeacher}/>
+                <Route exact path='/parents' component={AllParents}/>
+                <Route exact path='/library/add-book' component={AddBook}/>
+                <Route exact path='/library/edit-book/:id' component={AddBook}/>
+                <Route exact path='/attendance' component={Attendance}/>
+                <Route exact path='/finance/fees' component={Fees}/>
+                <Route exact path='/finance/other-earnings' component={OtherEarnings}/>
+                <Route exact path='/finance/create-fees-payment' component={CreateFeesPayment}/>
+                <Route exact path='/finance/all-expenses' component={AllExpenses}/>
+                <Route exact path='/finance/add-expense' component={AddExpense}/>
+                <Route exact path='/class/add-class' component={AddClass}/>
+                <Route exact path='/subjects/all-subjects' component={Subjects}/>
+                <Route exact path='/exams/grades' component={Grades}/>
+                <Route exact path='/transport' component={Transport}/>
+                <Route exact path='/hostel' component={Hostel}/>
+                <Route exact path='/notice' component={Notice}/>
+                <Route exact path='/profile' component={Profile}/>
+                {/*<Route path='/login' component={LoginPage}/>*/}
+
+        </div>
+    );
 }
 
 export default RouterView;

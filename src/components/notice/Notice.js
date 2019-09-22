@@ -1,42 +1,82 @@
-import React from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import SectionHeader from '../dashboard/SectionHeader';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faSync, faAngleDown, faTimes} from '@fortawesome/free-solid-svg-icons';
+import useCollapseState from '../../lib/CollapseState';
+import { AppContext } from '../../contexts/AppContext';
+import {Redirect} from 'react-router-dom';
+import {Col, Row, FormGroup, Form, Label, Input} from 'reactstrap';
+import Button from 'reactstrap/lib/Button';
+import axios from "axios";
 
 
-function AllNoticeList(props){
+
+function AllNoticeList({notice, dispatch, onClickEdit}){
+
+  let colors = ['green', 'blue', 'red', 'brown', 'purple', 'teal', 'orange'];
+
+  function elapsedDate(date) {
+    let d = new Date();
+    let datePosted = new Date(date);
+    let minutesElapsed = new Date(d - datePosted).getMinutes();
+    let hoursElapsed = new Date(d - datePosted).getHours();
+    let daysElapsed = new Date(d - datePosted).getDate();
+    if (minutesElapsed < 60) {
+      return minutesElapsed + "minute(s) ago"
+    } else if (minutesElapsed > 60 && minutesElapsed < 1440){
+      return hoursElapsed + "hour(s) ago"
+    } else {
+      return daysElapsed + "day(s) ago"
+    }
+  }
 
   return(
     <div className='flex-fill' style={{}}>
-      <span>16th May, 2019</span><br/>
-      <span>Jennifer Lopez <small>5mins ago</small></span><br/>
-      <span>Great school management app</span>
-      <hr/>
+      {notice.sort((a,b) => {return a.datePosted - b.datePosted}).map(noti => {return <div key={noti.datePosted}>
+        <span>{noti.title}</span><br/>
+        <span style={{color: colors[Math.floor(Math.random()*colors.length)]}}>{noti.postedBy} <small style={{color: 'black'}}>
+          {elapsedDate(noti.datePosted)}</small></span><br/>
+
+        <span>{noti.details}</span>
+        <hr/>
+      </div>})}
+      
+      
     </div>
   );
 }
 
-function AllNotice(props){
+function AllNotice({notice, dispatch, onClickEdit}){
+
+  const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
+
+  const collapsableStyle = {
+    display: isCollapse ? 'none': 'flex'
+  }
+
+  const closeStyle = {
+    display: isClosed ? 'none': 'flex'
+  }
 
   return(
-    <div className='d-flex flex-column flex-fill px-2 shadow' style={{backgroundColor: 'white', width: '100%', display: 'flex', overflowX: 'auto'}}>
+    <div className='flex-column flex-fill px-2 shadow' style={{...closeStyle, backgroundColor: 'white', width: '100%', overflowX: 'auto'}}>
       <div className='d-flex'>
         <strong className='align-self-center'>Notice Board</strong>
-        <div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
+        {/*<div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
           <input className='form-control form-control-sm mr-1'/>
           <input className='form-control form-control-sm mr-1'/>
           <button className='form-control form-control-sm' style={{backgroundColor: '#264d73', color: 'white', maxWidth: '60px'}}>Search</button>
-        </div>
+        </div>*/}
         <span className='ml-auto align-self-center flex-wrap'>
-          <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} />
+          <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={collapseButton} />
           <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
-          <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}}/>
+          <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={closeButton}/>
         </span>
         
       </div>
       <hr style={{margin:'0px', backgroundColor: 'black'}}/>
-      <div style={{display: 'flex', overflowX: 'auto'}}>
-        <AllNoticeList/>  
+      <div style={{...collapsableStyle, overflowX: 'auto'}}>
+        <AllNoticeList notice={notice} dispatch={dispatch} onClickEdit = {onClickEdit}/>  
       </div>
 
     </div>
@@ -45,42 +85,108 @@ function AllNotice(props){
 
 function Notice(props){
 
+  const [state, dispatch] = useContext(AppContext);
+
+  let notice = state.notice;
+
+  const initialNotice = {
+    title: '',
+    details: '',
+    postedBy: '',
+    datePosted: '',
+  }
+
+
+  const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
+
+  //const [editableNoticeId, setEditableNoticeId] = useState(false);
+
+
+  //let editableNotice = initialNotice;
+  
+  /* if(editableNoticeId) {
+    if(state.notice.length !== 0){
+      editablenotice = state.notice.find(host => host.noticeName === editableNoticeId);    
+    }   
+  } */
+
+  const [newNotice, setNewNotice] = useState(initialNotice);
+
+  /*function onClickEdit(x) {
+    setEditableNoticeId(true);
+    setNewNotice({...x});
+  }*/
+
+  useEffect(() => {
+    
+  })
+
+
+  const collapsableStyle = {
+    display: isCollapse ? 'none': 'block'
+  }
+
+  const closeStyle = {
+    display: isClosed ? 'none': 'block'
+  }
+
+  function onInputChange(e) {
+    const target = e.target;
+    newNotice[target.name] = target.value;
+    setNewNotice({...newNotice});
+  }
+
+  function handleAddNotice(event){
+    event.preventDefault();
+
+    const date = new Date();
+    newNotice.datePosted = date.toISOString();
+    setNewNotice({...newNotice});
+
+    async function postNotice() {
+      let action;
+        await axios.post('http://localhost:8080/v1/api/post-notice', JSON.stringify(newNotice))
+            .then(result => {
+              if (result.status === 200) {
+                action = {type: 'ADD_NOTICE', payload: result.data};
+                console.log('AddNotice')
+                dispatch(action);
+              }
+            })
+    }
+
+    postNotice();
+
+    setNewNotice({...initialNotice});
+    
+  }
+
   return(
     <div className='d-flex flex-wrap'>
-      <div style={{backgroundColor: 'white'}} className='shadow mr-2 mb-4'>
-        <SectionHeader sTitle={'Create A Notice'}/>
-        <div>
-          <form className='mx-2'>
-            <div className='my-3'>
-              <div className='d-flex flex-column flex-fill mr-3 mb-3'>
-                <label >Title</label>
-                <input name='noticetitle' />
-              </div>
-              <div className='d-flex flex-column flex-fill mr-3 mb-3'>
-                <label >Details</label>
-                <input name='noticedetails' />
-              </div>
-              <div className='d-flex flex-column flex-fill mr-3 mb-3'>
-                <label >Posted By</label>
-                <input name='postedby'/>
-              </div>
-              <div className='d-flex flex-column flex-fill mr-3 mb-3'>
-                <label >Date</label>
-                <input name='date' type='date'/>
-              </div>
-          
-            </div>
-
-            
-            <div>
-              <button>Save</button>
-            </div>
-
-          </form>
+      <div style={{...closeStyle, backgroundColor: 'white'}} className='shadow mr-2 mb-4 flex-fill'>
+        <SectionHeader sTitle={'Create A Notice'} toggleCollapse = {collapseButton} toggleClose = {closeButton}/>
+        <div className='px-3' style={{...collapsableStyle}}>
+        <Form className='px-2 ' onSubmit={handleAddNotice}>
+          <Row className='d-flex flex-wrap flex-column'>
+            <FormGroup className='flex-fill mr-3'>
+              <Label>Title</Label>
+              <Input name='title' value={newNotice.title} onChange={onInputChange}/>
+            </FormGroup>
+            <FormGroup className='flex-fill mr-3'>
+              <Label>Details</Label>
+              <Input name='details' type='textarea' value={newNotice.details} onChange={onInputChange}/>
+            </FormGroup>
+            <FormGroup className='flex-fill mr-3'>
+              <Label>Posted By</Label>
+              <Input name='postedBy' value={newNotice.postedBy} onChange={onInputChange} />
+            </FormGroup>
+          </Row>
+          <Button type='submit'>Save</Button>
+        </Form>  
         </div>
       </div>
       <div className='flex-fill' style={{display: 'flex', overflowX: 'auto'}}>
-        <AllNotice/>
+        <AllNotice notice={notice} dispatch={dispatch} />
       </div>
     </div>
   );
