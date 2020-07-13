@@ -1,7 +1,8 @@
 import React from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes} from '@fortawesome/free-solid-svg-icons'
+import {faAngleDown, faSync, faTimes} from '@fortawesome/free-solid-svg-icons'
 import ExamResultTable from './ExamResultTable';
+
 var examresult = [
   {
     id: 1,
@@ -15,7 +16,7 @@ var examresult = [
 ];
 
 
-function ExamResult(props){
+function ExamResult(){
 
   return(
     <div className='flex-fill px-2 my-3 shadow' style={{backgroundColor: 'white', width: '100%', maxHeight: '300px'}}>

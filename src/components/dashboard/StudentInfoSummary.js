@@ -1,13 +1,23 @@
 import React from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes, faImage, faShare, faEdit, faSave, faDownload} from '@fortawesome/free-solid-svg-icons'
+import {
+  faAngleDown,
+  faDownload,
+  faEdit,
+  faImage,
+  faSave,
+  faShare,
+  faSync,
+  faTimes
+} from '@fortawesome/free-solid-svg-icons'
+
 //import {faImage} from '@fortawesome/free-regular-svg-icons'
 
 
 function StudentInfoSummary(props) {
 
   return(
-    <div className='flex-fill px-1 px-sm-3 my-sm-3 mr-sm-3 shadow' style={{backgroundColor: 'white', border: '2px solid blue'}}>
+    <div className='flex-fill px-1 px-sm-3 my-sm-3 mr-sm-3 shadow' style={{backgroundColor: 'white'}}>
       <div className='d-flex'>
         <strong>My Information</strong>
         <span className='ml-auto'>
@@ -18,8 +28,8 @@ function StudentInfoSummary(props) {
       </div>
       <hr style={{margin:'0px', backgroundColor: 'black'}}/>
       <div className='d-flex flex-wrap'>
-        <div className='my-sm-2' style={{border: '2px solid red', padding: '0px'}}>
-          <FontAwesomeIcon className='flex-fill' icon={faImage} size='9x' style={{border: '2px solid red'}}/>
+        <div className='my-sm-2' style={{padding: '0px'}}>
+          <FontAwesomeIcon className='flex-fill' icon={faImage} size='9x' />
           <div className='d-flex my-2'>
             <FontAwesomeIcon icon={faEdit} className='flex-fill mr-2' style={{backgroundColor: 'grey'}} />
             <FontAwesomeIcon icon={faSave} className='flex-fill mr-2' style={{backgroundColor: 'grey'}} />
@@ -27,7 +37,7 @@ function StudentInfoSummary(props) {
             <FontAwesomeIcon icon={faShare} className='flex-fill' style={{backgroundColor: 'grey'}} />
           </div>
         </div>
-        <div className='my-sm-2' style={{border: '2px solid green', padding: '0px', fontSize: '0.8rem', wordWrap: 'break-word'}}>
+        <div className='my-sm-2' style={{padding: '0px', fontSize: '0.8rem', wordWrap: 'break-word'}}>
           <div className='d-flex' style={{padding: '0px'}} ><p className='col-4 p-0 px-sm-2'>Name:</p> <p className='col-8 p-0 px-sm-2'><strong>Kolakanmi Apanisile</strong></p></div>
           <div className='d-flex' style={{padding: '0px'}} ><p className='col-4 p-0 px-sm-2'>Gender:</p> <p className='col-8 p-0 px-sm-2'><strong>Male</strong></p></div>          
           <div className='d-flex' style={{padding: '0px'}} ><p className='col-4 p-0 px-sm-2'>Father's Name:</p> <p className='col-8 p-0 px-sm-2'><strong>Kolawole Oladotun Apanisile</strong></p></div>          

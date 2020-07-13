@@ -1,8 +1,8 @@
 import React from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faAngleDown, faDumpster, faEdit, faEye, faSync, faTimes} from '@fortawesome/free-solid-svg-icons';
+import {faAngleDown, faDumpster, faEdit, faEye, faTimes} from '@fortawesome/free-solid-svg-icons';
 
-function AllClassesTable({classes, dispatch, onClickEdit}) {
+function AllClassesTable({classes, dispatch, onClickEdit, deleteClass}) {
 
     return (
         <div className='flex-fill'
@@ -28,7 +28,7 @@ function AllClassesTable({classes, dispatch, onClickEdit}) {
                             <FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/>
                             <FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}
                                              onClick={() => onClickEdit(c)}/>
-                            <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}}/>
+                            <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}} onClick={() => deleteClass(c)}/>
                         </td>
                     </tr>
                 })}
@@ -38,7 +38,7 @@ function AllClassesTable({classes, dispatch, onClickEdit}) {
     );
 }
 
-function AllClasses({classes, dispatch, onClickEdit}) {
+function AllClasses({classes, dispatch, onClickEdit, deleteClass}) {
 
     return (
         <div className='d-flex flex-column flex-fill px-2 my-3 shadow'
@@ -54,14 +54,13 @@ function AllClasses({classes, dispatch, onClickEdit}) {
                 </div>*/}
                 <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}}/>
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}}/>
         </span>
 
             </div>
             <hr style={{margin: '0px', backgroundColor: 'black'}}/>
             <div style={{display: 'flex', overflowX: 'auto'}}>
-                <AllClassesTable classes={classes} dispatch={dispatch} onClickEdit={onClickEdit}/>
+                <AllClassesTable classes={classes} dispatch={dispatch} onClickEdit={onClickEdit} deleteClass={deleteClass}/>
             </div>
 
         </div>

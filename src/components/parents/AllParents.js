@@ -1,28 +1,31 @@
 import React, {useContext} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faAngleDown, faDumpster, faEdit, faEye, faSync, faTimes} from '@fortawesome/free-solid-svg-icons';
+import {faAngleDown,faEye, faTimes} from '@fortawesome/free-solid-svg-icons';
 import {AppContext} from '../../contexts/AppContext';
 import useCollapseState from '../../lib/CollapseState';
 import {Link} from 'react-router-dom/cjs/react-router-dom';
 import axios from 'axios'
+import useAxiosConfig from "../../lib/AxiosConfig";
 
 
 function AllParentsTable({parents, dispatch}){
 
+  let config = useAxiosConfig();
+
   function deleteParent(parent){
 
     async function deletePar() {
-      axios.get('http://localhost:8080/v1/api/deleteParent/'+ parent.parentId)
+      axios.get('/v1/api/deleteParent/'+ parent.parentId, config)
           .then((response) => {
             if (response.status === 200) {
               let action = {type: 'DELETE_PARENT', payload: response.data};
-              console.log('DeleteParent')
+              console.log('DeleteParent');
               dispatch(action);
             }
           })
     }
 
-    deletePar()
+   // deletePar()
 
   }
 
@@ -49,9 +52,8 @@ function AllParentsTable({parents, dispatch}){
             <td>{parent.mobileNumber} </td>
             <td>{parent.address}</td>
             <td className='flex-fill' style={{minWidth: '80px'}}>
-              <Link to={'/parents/parent-details/'+parent.employmentNo}><FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/></Link>
-              <Link to={'/parents/edit-parent/'+parent.employmentNo}><FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}/></Link>
-              <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}} onClick={() => deleteParent(parent)}/>
+              <Link to={'/parents/parent-details/'+parent.parentId}><FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/></Link>
+             {/* <Link to={'/parents/edit-parent/'+parent.parentId}><FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}/></Link>*/}
             </td>
           </tr>})}
         </tbody>
@@ -68,11 +70,11 @@ function AllParents(props){
 
   const collapsableStyle = {
     display: isCollapse ? 'none': 'flex'
-  }
+  };
 
   const closeStyle = {
     display: isClosed ? 'none': 'flex'
-  }
+  };
 
   return(
     <div className='flex-column flex-fill px-2 my-3 shadow' style={{...closeStyle,backgroundColor: 'white', width: '100%', overflowX: 'auto'}}>
@@ -85,7 +87,6 @@ function AllParents(props){
         </div>*/}
         <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={collapseButton} />
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={closeButton}/>
         </span>
         

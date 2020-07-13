@@ -1,8 +1,45 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes, faImage, faEye, faEdit, faDumpster} from '@fortawesome/free-solid-svg-icons';
+import {faAngleDown, faTimes} from '@fortawesome/free-solid-svg-icons';
+import {AppContext} from "../../contexts/AppContext";
 
-function FeesTable(props){
+function FeesTable(){
+
+  const [state, dispatch] = useContext(AppContext);
+
+  let {students} = state;
+
+  let currentStudents = students.filter(s => {
+    return s.class !== 'Archived'
+  });
+
+  let archivedStudents = students.filter(s => {
+    return s.class === 'Archived'
+  })
+
+  function currentStudentFees(students) {
+   let  allFees = [];
+   students.forEach(v => {
+     let totalFees = v.fees.reduce((acc, item) => {
+       return acc + item.amountDue
+     }, 0);
+     let status = 'Debt';
+     if (totalFees <= 0) {
+       status = 'Paid'
+     }
+     let f = {...v, totalAmountDue: totalFees, status};
+     allFees.push(f)
+   });
+    return allFees
+  }
+
+  let allStudentFees = currentStudentFees(currentStudents);
+  let archivedStudentFees = currentStudentFees(archivedStudents)
+  function mySort(a, b) {
+    if (a.class < b.class) return -1;
+    else if (a.class > b.class) return 1;
+    else return 0;
+  }
 
   return(
     <div className='flex-fill' style={{display: 'flex', overflowX: 'auto', fontSize: '0.65rem', fontWeight: 'bold'}}>
@@ -13,61 +50,54 @@ function FeesTable(props){
             <th>Photo</th>
             <th>Name</th>
             <th>Gender</th>
-            <th>Parent's Name</th>
-            <th>Paid Fees</th>
             <th>Due Fees</th>
             <th>Status</th>
             <th>Class</th>
             <th>Section</th>
             <th>Address</th>
-            <th>Parent's Mobile</th>
-            <th>Parent's Email</th>
-            <th>Payment Date</th>
-            <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1000</td>
-            <td><FontAwesomeIcon icon={faImage}/></td>
-            <td>Kolakanmi Apanisile</td>
-            <td>Male</td>
-            <td>Oladotun Apanisile</td>
-            <td>9,000</td>
-            <td>1,000</td>
-            <td>Due</td>
-            <td>Finished</td>
-            <td>A</td>
-            <td>4, Smith Lanre Taiwo Street</td>
-            <td>08083330801</td>
-            <td>oladotunapanisile@gmail.com</td>
-            <td>01/01/2012</td>
-            <td className='flex-fill' style={{minWidth: '80px'}}>
-              <FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/>
-              <FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}/>
-              <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}}/>
-            </td>
+        {allStudentFees.sort(mySort).map(s => {
+          return <tr>
+            <td>{s.admissionNumber}</td>
+            <td><img style={{width: '25px', height: '25px'}} src={'/' + s.picture} alt='student'/></td>
+            <td>{s.firstName + " " + s.lastName}</td>
+            <td>{s.gender}</td>
+            <td>{s.totalAmountDue}</td>
+            <td>{s.status}</td>
+            <td>{s.class}</td>
+            <td>{s.section}</td>
+            <td>{s.address}</td>
           </tr>
+        })}
+        {archivedStudentFees.map(s => {
+          return <tr>
+            <td>{s.admissionNumber}</td>
+            <td><img style={{width: '25px', height: '25px'}} src={'/' + s.picture} alt='student'/></td>
+            <td>{s.firstName + " " + s.lastName}</td>
+            <td>{s.gender}</td>
+            <td>{s.totalAmountDue}</td>
+            <td>{s.status}</td>
+            <td>{s.class}</td>
+            <td>{s.section}</td>
+            <td>{s.address}</td>
+          </tr>
+        })}
         </tbody>
       </table>
     </div>
   );
 }
 
-function Fees(props){
+function Fees(){
 
   return(
     <div className='d-flex flex-column flex-fill px-2 my-3 shadow' style={{backgroundColor: 'white', width: '100%', maxHeight: '300px', display: 'flex', overflowX: 'auto'}}>
       <div className='d-flex'>
         <strong className='align-self-center'>Student Fees Table</strong>
-        <div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
-          <input className='form-control form-control-sm mr-1'/>
-          <input className='form-control form-control-sm mr-1'/>
-          <button className='form-control form-control-sm' style={{backgroundColor: '#264d73', color: 'white', maxWidth: '60px'}}>Search</button>
-        </div>
         <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} />
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}}/>
         </span>
         

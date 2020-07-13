@@ -1,12 +1,14 @@
-import React, {useState, useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import SectionHeader from '../dashboard/SectionHeader';
-import { AppContext } from '../../contexts/AppContext';
+import {AppContext} from '../../contexts/AppContext';
 import useCollapseState from '../../lib/CollapseState';
 import {Redirect} from 'react-router-dom';
-import {Col, Row, FormGroup, Form, Label, Input} from 'reactstrap';
+import {Col, Form, FormGroup, Input, Label, Row} from 'reactstrap';
 import Button from 'reactstrap/lib/Button';
 import axios from "axios";
 import {returnClassesArray, returnSectionArray} from "../../lib/ReturnNeededArray";
+import FormFeedback from "reactstrap/es/FormFeedback";
+import useAxiosConfig from "../../lib/AxiosConfig";
 
 function AddTeacher(props){
 
@@ -62,10 +64,12 @@ function AddTeacher(props){
       }
     ]
   
-  }
+  };
 
 
   const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
+
+  let config = useAxiosConfig();
   
 
   let editableTeacherId;
@@ -85,6 +89,8 @@ function AddTeacher(props){
 
   const [theSize, setTheSize] = useState(1);
 
+  const [fieldErrors, setFieldErrors] = useState({});
+
   if(editableTeacherId && (state.teachers.length === 0) ){
     return(<Redirect to='/teachers/add-teacher'/>)
   }
@@ -93,11 +99,11 @@ function AddTeacher(props){
 
   const collapsableStyle = {
     display: isCollapse ? 'none': 'block'
-  }
+  };
 
   const closeStyle = {
     display: isClosed ? 'none': 'block'
-  }
+  };
 
   function onInputChange(e) {
     const target = e.target;
@@ -114,6 +120,9 @@ function AddTeacher(props){
     //console.log(fileInput.current.files[0].name);
     newTeacher.employmentNumber = editableTeacher.employmentNumber; //|| state.teachers.length + 1;
     const date = new Date();
+    let errors = validate(newTeacher);
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) return;
     newTeacher.employmentDate = editableTeacherId ? newTeacher.employmentDate : date.toISOString();
     newTeacher.dateOfBirth = new Date(newTeacher.dateOfBirth).toISOString();
     if(!editableTeacherId){
@@ -137,28 +146,39 @@ function AddTeacher(props){
     teacherDetails.append('Religion', newTeacher.religion);
     teacherDetails.append('Address', newTeacher.address);
     teacherDetails.append('EmploymentDate', newTeacher.employmentDate);
+    teacherDetails.append('Role', "teacher");
 
     console.log('NewTeacher, ', newTeacher);
 
     async function postTeacher(){
       let action;
       if(editableTeacherId){
-        await axios.put('http://localhost:8080/update-teacher', teacherDetails)
+        await axios.put('/v1/api/update-teacher', teacherDetails, config)
             .then(result => {
               if (result.status === 200) {
                 action = {type: 'EDIT_TEACHER', payload: result.data};
-                console.log('EditTeacher')
                 dispatch(action);
+              } if (result.status === 401) {
+                return <Redirect to='/login'/>
               }
             })
+            .catch(error => {
+              console.log(error)
+              return <Redirect to='/login'/>
+            })
       } else {
-        await axios.post('http://localhost:8080/v1/api/post-teacher', teacherDetails)
+        await axios.post('/v1/api/post-teacher', teacherDetails, config)
             .then(result => {
               if (result.status === 200){
                 action = {type: 'ADD_TEACHER', payload: result.data};
-                console.log('AddTeacher')
                 dispatch(action);
+              } if (result.status === 401) {
+                return <Redirect to='/login'/>
               }
+            })
+            .catch(error => {
+              console.log(error)
+              return <Redirect to='/login'/>
             })
       }
     }
@@ -177,19 +197,23 @@ function AddTeacher(props){
           <Row className='d-flex flex-wrap'>
             <FormGroup className='flex-fill mr-3'>
               <Label>First Name</Label>
-              <Input name='firstName' value={newTeacher.firstName} onChange={onInputChange}/>
+              <Input invalid={fieldErrors.firstName === true} name='firstName' value={newTeacher.firstName} onChange={onInputChange}/>
+              <FormFeedback invalid>Insert First Name</FormFeedback>
             </FormGroup>
             <FormGroup className='flex-fill mr-3'>
               <Label>Last Name</Label>
-              <Input name='lastName' value={newTeacher.lastName} onChange={onInputChange}/>
+              <Input invalid={fieldErrors.lastName === true} name='lastName' value={newTeacher.lastName} onChange={onInputChange}/>
+              <FormFeedback invalid>Insert Last Name</FormFeedback>
             </FormGroup>
             <FormGroup className='flex-fill mr-3'>
               <Label>Email</Label>
-              <Input type='email' name='email' value={newTeacher.email} onChange={onInputChange} />
+              <Input invalid={fieldErrors.email === true} type='email' name='email' value={newTeacher.email} onChange={onInputChange} />
+              <FormFeedback invalid>Insert Email</FormFeedback>
             </FormGroup>
             <FormGroup className='flex-fill mr-3'>
               <Label>Mobile Number</Label>
-              <Input name='mobileNumber' value={newTeacher.mobileNumber} onChange={onInputChange}/>
+              <Input invalid={fieldErrors.mobileNumber === true} name='mobileNumber' value={newTeacher.mobileNumber} onChange={onInputChange}/>
+              <FormFeedback invalid>Insert Mobile Number</FormFeedback>
             </FormGroup>
             <FormGroup className='flex-fill mr-3'>
               <Label>Gender</Label>
@@ -264,7 +288,8 @@ function AddTeacher(props){
             </FormGroup>*/}
             <FormGroup className='flex-fill mr-3'>
               <Label>Date Of Birth</Label>
-              <Input name='dateOfBirth' type='date' value={newTeacher.dateOfBirth} onChange={onInputChange}/>
+              <Input invalid={fieldErrors.dateOfBirth === true} name='dateOfBirth' type='date' value={newTeacher.dateOfBirth} onChange={onInputChange}/>
+              <FormFeedback invalid>Select Date</FormFeedback>
             </FormGroup>
             <FormGroup className='flex-fill mr-3'>
               <Label>Religion</Label>
@@ -276,16 +301,17 @@ function AddTeacher(props){
             </FormGroup>
             <FormGroup className='flex-fill mr-3'>
               <Label>Picture</Label>
-              <Input name='picture' type='file' onChange={onInputChange}/>
-              <img style={{width: '20px', height: '20px'}} alt="uploaded" src={''}/>
+              <Input invalid={fieldErrors.picture === true} name='picture' type='file' onChange={onInputChange}/>
+              {/*<img style={{width: '20px', height: '20px'}} alt="uploaded" src={''}/>*/}
+              <FormFeedback invalid>Insert Picture</FormFeedback>
             </FormGroup>
             <FormGroup className='flex-fill mr-3'>
               <Label>Address</Label>
-              <Input name='address' type='textarea' value={newTeacher.address} onChange={onInputChange}/>
+              <Input name='address' type='textarea' maxLength={200} value={newTeacher.address} onChange={onInputChange}/>
             </FormGroup>
             
           </Row>
-          <Button type='submit'>Save</Button>
+          <Button style={{backgroundColor: 'teal'}} type='submit'>Save</Button>
         </Form> 
       </div>
     </div>
@@ -293,3 +319,18 @@ function AddTeacher(props){
 }
 
 export default AddTeacher;
+
+let validate = (student) => {
+  let errors = {};
+  //const emailRex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+  if (!student.firstName || student.firstName === '') errors.firstName = true;
+  if (!student.lastName || student.lastName === '') errors.lastName = true;
+  if (!student.email || student.email === '') errors.email = true;
+  if (!student.mobileNumber || student.mobileNumber === '') errors.mobileNumber = true;
+  if (!student.picture || student.picture === '' || student.picture.size === 0) errors.picture = true;
+  if (!student.dateOfBirth || student.dateOfBirth === '') errors.dateOfBirth = true;
+
+  return errors;
+
+};

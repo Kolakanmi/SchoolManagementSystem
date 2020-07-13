@@ -1,17 +1,17 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import SectionHeader from '../dashboard/SectionHeader';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes} from '@fortawesome/free-solid-svg-icons';
+import {faAngleDown, faTimes} from '@fortawesome/free-solid-svg-icons';
 import useCollapseState from '../../lib/CollapseState';
-import { AppContext } from '../../contexts/AppContext';
-import {Redirect} from 'react-router-dom';
-import {Col, Row, FormGroup, Form, Label, Input} from 'reactstrap';
+import {AppContext} from '../../contexts/AppContext';
+import {Form, FormGroup, Input, Label, Row} from 'reactstrap';
 import Button from 'reactstrap/lib/Button';
 import axios from "axios";
+import useAxiosConfig from "../../lib/AxiosConfig";
+import {Redirect} from 'react-router-dom'
 
 
-
-function AllNoticeList({notice, dispatch, onClickEdit}){
+export function AllNoticeList({notice, dispatch, onClickEdit}){
 
   let colors = ['green', 'blue', 'red', 'brown', 'purple', 'teal', 'orange'];
 
@@ -52,24 +52,19 @@ function AllNotice({notice, dispatch, onClickEdit}){
 
   const collapsableStyle = {
     display: isCollapse ? 'none': 'flex'
-  }
+  };
 
   const closeStyle = {
     display: isClosed ? 'none': 'flex'
-  }
+  };
 
   return(
     <div className='flex-column flex-fill px-2 shadow' style={{...closeStyle, backgroundColor: 'white', width: '100%', overflowX: 'auto'}}>
       <div className='d-flex'>
         <strong className='align-self-center'>Notice Board</strong>
-        {/*<div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
-          <input className='form-control form-control-sm mr-1'/>
-          <input className='form-control form-control-sm mr-1'/>
-          <button className='form-control form-control-sm' style={{backgroundColor: '#264d73', color: 'white', maxWidth: '60px'}}>Search</button>
-        </div>*/}
         <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={collapseButton} />
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
+
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={closeButton}/>
         </span>
         
@@ -83,7 +78,7 @@ function AllNotice({notice, dispatch, onClickEdit}){
   );
 }
 
-function Notice(props){
+export function Notice(){
 
   const [state, dispatch] = useContext(AppContext);
 
@@ -94,7 +89,7 @@ function Notice(props){
     details: '',
     postedBy: '',
     datePosted: '',
-  }
+  };
 
 
   const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
@@ -112,6 +107,8 @@ function Notice(props){
 
   const [newNotice, setNewNotice] = useState(initialNotice);
 
+  let config = useAxiosConfig();
+
   /*function onClickEdit(x) {
     setEditableNoticeId(true);
     setNewNotice({...x});
@@ -119,16 +116,16 @@ function Notice(props){
 
   useEffect(() => {
     
-  })
+  });
 
 
   const collapsableStyle = {
     display: isCollapse ? 'none': 'block'
-  }
+  };
 
   const closeStyle = {
     display: isClosed ? 'none': 'block'
-  }
+  };
 
   function onInputChange(e) {
     const target = e.target;
@@ -145,13 +142,19 @@ function Notice(props){
 
     async function postNotice() {
       let action;
-        await axios.post('http://localhost:8080/v1/api/post-notice', JSON.stringify(newNotice))
+        await axios.post('/v1/api/post-notice', JSON.stringify(newNotice), config)
             .then(result => {
               if (result.status === 200) {
                 action = {type: 'ADD_NOTICE', payload: result.data};
-                console.log('AddNotice')
+                console.log('AddNotice');
                 dispatch(action);
+              } if (result.status === 401) {
+                return <Redirect to='/login'/>
               }
+            })
+            .catch(error => {
+              console.log(error)
+              return <Redirect to='/login'/>
             })
     }
 
@@ -181,7 +184,7 @@ function Notice(props){
               <Input name='postedBy' value={newNotice.postedBy} onChange={onInputChange} />
             </FormGroup>
           </Row>
-          <Button type='submit'>Save</Button>
+          <Button style={{backgroundColor: 'teal'}} type='submit'>Save</Button>
         </Form>  
         </div>
       </div>
@@ -191,5 +194,3 @@ function Notice(props){
     </div>
   );
 }
-
-export default Notice;

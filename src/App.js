@@ -52,12 +52,12 @@ export default App;
 
 function MainPage(props) {
 
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(false);
 
     return (
         <div className="container-fluid d-flex"
              style={{height: "100%", color: "white", padding: "0px"}}>
-            <Sidebar {...props} isOpen={isOpen}/>
+            <Sidebar {...props} isOpen={isOpen} setIsOpen={setIsOpen}/>
             <div className='flex-fill col-md-10'
                  style={{minHeight: '99.9vh', margin: '0px', padding: '0px', color: 'black', backgroundColor: '#d3d3d3'}}>
                 <TopHeader {...props} isOpen={isOpen} setIsOpen={setIsOpen}/>

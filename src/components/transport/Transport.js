@@ -1,16 +1,18 @@
-import React, {useState, useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import SectionHeader from '../dashboard/SectionHeader';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes, faEye, faEdit, faDumpster} from '@fortawesome/free-solid-svg-icons';
+import {faAngleDown, faDumpster, faEdit, faEye, faTimes} from '@fortawesome/free-solid-svg-icons';
 import useCollapseState from '../../lib/CollapseState';
 import {AppContext} from '../../contexts/AppContext';
-import {Link, Redirect} from 'react-router-dom';
-import {Col, Row, FormGroup, Form, Label, Input} from 'reactstrap';
+import {Form, FormGroup, Input, Label, Row} from 'reactstrap';
 import Button from 'reactstrap/lib/Button';
 import axios from "axios";
+import useAxiosConfig from "../../lib/AxiosConfig";
+import {Redirect} from 'react-router-dom'
+import FormFeedback from "reactstrap/es/FormFeedback";
 
+function AllTransportTable({transport, dispatch, onClickEdit, deleteTransport}) {
 
-function AllTransportTable({transport, dispatch, onClickEdit}) {
 
     return (
         <div className='flex-fill'
@@ -41,7 +43,7 @@ function AllTransportTable({transport, dispatch, onClickEdit}) {
                             <FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/>
                             <FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}
                                              onClick={() => onClickEdit(tran)}/>
-                            <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}}/>
+                            <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}} onClick={() => deleteTransport(tran)}/>
                         </td>
                     </tr>
                 })}
@@ -51,17 +53,17 @@ function AllTransportTable({transport, dispatch, onClickEdit}) {
     );
 }
 
-function AllTransport({transport, dispatch, onClickEdit}) {
+function AllTransport({transport, dispatch, onClickEdit, deleteTransport}) {
 
     const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
 
     const collapsableStyle = {
         display: isCollapse ? 'none' : 'block'
-    }
+    };
 
     const closeStyle = {
         display: isClosed ? 'none' : 'block'
-    }
+    };
 
     return (
         <div className='flex-column flex-fill px-2 shadow'
@@ -77,14 +79,13 @@ function AllTransport({transport, dispatch, onClickEdit}) {
                 </div>*/}
                 <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={collapseButton}/>
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={closeButton}/>
         </span>
 
             </div>
             <hr style={{margin: '0px', backgroundColor: 'black'}}/>
             <div style={{...collapsableStyle, overflowX: 'auto'}}>
-                <AllTransportTable transport={transport} dispatch={dispatch} onClickEdit={onClickEdit}/>
+                <AllTransportTable transport={transport} dispatch={dispatch} onClickEdit={onClickEdit} deleteTransport={deleteTransport}/>
             </div>
 
         </div>
@@ -96,6 +97,8 @@ function Transport(props) {
     const [state, dispatch] = useContext(AppContext);
     let {profile} = state;
 
+    let config = useAxiosConfig();
+
     let transport = state.transport;
 
     const initialTransport = {
@@ -104,12 +107,14 @@ function Transport(props) {
         driverName: '',
         driverLicense: '',
         driverMobile: ''
-    }
+    };
 
 
     const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
 
     const [editableTransportId, setEditableTransportId] = useState(false);
+
+    const [fieldErrors, setFieldErrors] = useState({});
 
     //let editableTransport = initialTransport;
 
@@ -121,14 +126,25 @@ function Transport(props) {
         setNewTransport({...x});
     }
 
+    async function deleteTransport(x) {
+        axios.delete('/v1/api/delete-transport/'+ x.routeName + '/' + x.driverMobile, config)
+            .then((response) => {
+                if (response.status === 200) {
+                    let action = {type: 'DELETE_TRANSPORT', payload: x};
+                    console.log('DeleteTransport');
+                    dispatch(action);
+                }
+            })
+    }
+
 
     const collapsableStyle = {
         display: isCollapse ? 'none' : 'block'
-    }
+    };
 
     const closeStyle = {
         display: isClosed ? 'none' : 'block'
-    }
+    };
 
     function onInputChange(e) {
         const target = e.target;
@@ -139,29 +155,43 @@ function Transport(props) {
     function handleAddTransport(event) {
         event.preventDefault();
 
-        const date = new Date();
-        newTransport.id = editableTransportId ? newTransport.id : date.toUTCString();
+        let errors = validate(newTransport)
+        setFieldErrors(errors);
+        if (Object.keys(errors).length) return;
+
         setNewTransport({...newTransport});
 
         async function postTransport() {
             let action;
             if (editableTransportId) {
-                await axios.put('http://localhost:8080/v1/api/update-transport', newTransport)
+                await axios.put('/v1/api/update-transport', JSON.stringify(newTransport), config)
                     .then(result => {
                         if (result.status === 200) {
                             action = {type: 'EDIT_TRANSPORT', payload: result.data};
-                            console.log('EditTr')
+                            console.log('EditTr');
                             dispatch(action);
+                        } if (result.status === 401) {
+                            return <Redirect to='/login'/>
                         }
                     })
+                    .catch(error => {
+                        console.log(error)
+                        return <Redirect to='/login'/>
+                    })
             } else {
-                await axios.post('http://localhost:8080/v1/api/post-transport', JSON.stringify(newTransport))
+                await axios.post('/v1/api/post-transport', JSON.stringify(newTransport), config)
                     .then(result => {
                         if (result.status === 200) {
                             action = {type: 'ADD_TRANSPORT', payload: result.data};
-                            console.log('AddTRA')
+                            console.log('AddTRA');
                             dispatch(action);
+                        } if (result.status === 401) {
+                            return <Redirect to='/login'/>
                         }
+                    })
+                    .catch(error => {
+                        console.log(error)
+                        return <Redirect to='/login'/>
                     })
             }
         }
@@ -173,7 +203,7 @@ function Transport(props) {
 
     return (
         <div className='d-flex flex-wrap'>
-            {(profile.role === 'admin') ? <div style={{...closeStyle, backgroundColor: 'white'}} className='shadow flex-fill mr-2 mb-4'>
+            {(profile.role === 'Admin' || 'admin') ? <div style={{...closeStyle, backgroundColor: 'white'}} className='shadow flex-fill mr-2 mb-4'>
                 <SectionHeader sTitle={'Create New Transport'} toggleCollapse={collapseButton}
                                toggleClose={closeButton}/>
                 <div className='px-3' style={{...collapsableStyle}}>
@@ -181,7 +211,8 @@ function Transport(props) {
                         <Row className='d-flex flex-wrap'>
                             <FormGroup className='flex-fill mr-3'>
                                 <Label>Route Name</Label>
-                                <Input name='routeName' value={newTransport.routeName} onChange={onInputChange}/>
+                                <Input invalid={fieldErrors.routeName === true} name='routeName' value={newTransport.routeName} onChange={onInputChange}/>
+                                <FormFeedback invalid>Insert Route Name</FormFeedback>
                             </FormGroup>
                             <FormGroup className='flex-fill mr-3'>
                                 <Label>Vehicle Number</Label>
@@ -199,18 +230,27 @@ function Transport(props) {
                             </FormGroup>
                             <FormGroup className='flex-fill mr-3'>
                                 <Label>Driver's Mobile No</Label>
-                                <Input name='driverMobile' value={newTransport.driverMobile} onChange={onInputChange}/>
+                                <Input invalid={fieldErrors.driverMobile === true} name='driverMobile' value={newTransport.driverMobile} onChange={onInputChange}/>
+                                <FormFeedback invalid>Insert Driver Number</FormFeedback>
                             </FormGroup>
                         </Row>
-                        <Button type='submit'>Save</Button>
+                        <Button style={{backgroundColor: 'teal'}} type='submit'>Save</Button>
                     </Form>
                 </div>
             </div> : <div></div>}
             <div className='flex-fill' style={{display: 'flex', overflowX: 'auto'}}>
-                <AllTransport transport={transport} dispatch={dispatch} onClickEdit={onClickEdit}/>
+                <AllTransport transport={transport} dispatch={dispatch} onClickEdit={onClickEdit} deleteTransport={deleteTransport}/>
             </div>
         </div>
     );
 }
 
 export default Transport;
+
+function validate(transport) {
+    let errors = {};
+    if (!transport.routeName || transport.routeName === '') errors.role = true;
+    if (!transport.driverMobile || transport.driverMobile === '') errors.driverMobile = true;
+
+    return errors;
+}

@@ -1,20 +1,11 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes, faEye, faEdit, faDumpster} from '@fortawesome/free-solid-svg-icons';
-import { AppContext } from '../../contexts/AppContext';
+import {faAngleDown, faDumpster, faEdit, faEye, faTimes} from '@fortawesome/free-solid-svg-icons';
 import useCollapseState from '../../lib/CollapseState';
-import { Link } from 'react-router-dom/cjs/react-router-dom';
 
 
-function AllBooksTable({books, dispatch, onClickEdit}){
+function AllBooksTable({books, dispatch, onClickEdit, deleteBook}){
 
-  function deleteBook(book){
-    let action = {
-      type: 'DELETE_BOOK',
-      payload: book
-    }
-    dispatch(action);
-  }
 
   return(
     <div className='flex-fill' style={{display: 'flex', overflowX: 'auto', fontSize: '0.65rem', fontWeight: 'bold'}}>
@@ -52,7 +43,7 @@ function AllBooksTable({books, dispatch, onClickEdit}){
               <FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/>
               <FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}
                                                                              onClick={() => onClickEdit(book)}/>
-              <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}} onClick={() => deleteBook(book)}/>
+              <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}} onClick={() => deleteBook(book.bookId)}/>
             </td>
           </tr>})}
         </tbody>
@@ -61,17 +52,17 @@ function AllBooksTable({books, dispatch, onClickEdit}){
   );
 }
 
-function AllBooks({books, dispatch, onClickEdit}){
+function AllBooks({books, dispatch, onClickEdit, deleteBook}){
 
   const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
 
   const collapsableStyle = {
     display: isCollapse ? 'none': 'flex'
-  }
+  };
 
   const closeStyle = {
     display: isClosed ? 'none': 'flex'
-  }
+  };
 
   return(
     <div className='flex-column flex-fill px-2 my-3 shadow' style={{...closeStyle, backgroundColor: 'white', width: '100%', overflowX: 'auto'}}>
@@ -84,14 +75,13 @@ function AllBooks({books, dispatch, onClickEdit}){
         </div>*/}
         <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick = {collapseButton} />
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick = {closeButton}/>
         </span>
         
       </div>
       <hr style={{margin:'0px', backgroundColor: 'black'}}/>
       <div style={{...collapsableStyle, overflowX: 'auto'}}>
-        <AllBooksTable books={books} dispatch={dispatch} onClickEdit={onClickEdit}/>
+        <AllBooksTable books={books} dispatch={dispatch} onClickEdit={onClickEdit} deleteBook={deleteBook}/>
       </div>
 
     </div>

@@ -5,7 +5,7 @@ import {faBars} from '@fortawesome/free-solid-svg-icons'
 function SideHeader({barOpen, setBarOpen}) {
 
   return(
-    <div className='d-flex align-items-center pl-3' style = {{border: "2px solid red", backgroundColor: "#ffcc00", height: "50px"}}> 
+    <div className='d-flex align-items-center pl-3' style = {{backgroundColor: "#ffcc00", height: "50px"}}>
       <span className='flex-fill'>ELIS</span>
       <span className='col-2'><FontAwesomeIcon icon={faBars} onClick={() => {setBarOpen(!barOpen)}}/></span>
     </div>

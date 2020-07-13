@@ -6,11 +6,11 @@ import '../lib/css/sidebar.css'
 import {AppContext} from '../contexts/AppContext';
 
 
-function Sidebar({isOpen}) {
+function Sidebar({isOpen, setIsOpen}) {
 
-    const [items, setItems] = useState([])
-    const [barOpen, setBarOpen] = useState(true)
-    const [state, dispatch] = useContext(AppContext)
+    const [items, setItems] = useState([]);
+    const [barOpen, setBarOpen] = useState(true);
+    const [state, dispatch] = useContext(AppContext);
     let teacherItemsArray = [
         {
             id: 1,
@@ -19,9 +19,8 @@ function Sidebar({isOpen}) {
         },
         {
             id: 2,
-            name: 'Students',
-            drops: ['All Students', 'Promotion'],
-            link: ['/students/all-students', '/students/student-promotion']
+            name: 'All Students',
+            link: ['/students/all-students']
         },
 
         {
@@ -37,37 +36,32 @@ function Sidebar({isOpen}) {
         },
         {
             id: 5,
-            name: 'Class Routine',
-            link: ['/']
-        },
-        {
-            id: 6,
             name: 'Attendance',
             link: ['/attendance']
         },
         {
-            id: 7,
+            id: 6,
             name: 'Exam',
-            drops: ['Exam Schedule', 'Exam Grades'],
-            link: ['/', '/exams/grades']
+            drops: ['Term Result', 'Exam Grades'],
+            link: ['/exams/result', '/exams/grades']
         },
         {
-            id: 8,
+            id: 7,
             name: 'Transport',
             link: ['/transport']
         },
         {
-            id: 9,
+            id: 8,
             name: 'Hostel',
             link: ['/hostel']
         },
         {
-            id: 10,
+            id: 9,
             name: 'Notice',
             link: ['/notice']
         },
         {
-            id: 11,
+            id: 10,
             name: 'Profile',
             link: ['/profile']
         }
@@ -80,18 +74,17 @@ function Sidebar({isOpen}) {
             link: ['/dashboard/parent']
         },
         {
-            id: 3,
-            name: 'Exam',
-            drops: ['Exam Schedule', 'Exam Grades'],
-            link: ['/', '/exams/grades']
+            id: 2,
+            name: 'Exam Result',
+            link: ['/exams/result']
         },
         {
-            id: 4,
+            id: 3,
             name: 'Notice',
             link: ['/notice']
         },
         {
-            id: 5,
+            id: 4,
             name: 'Profile',
             link: ['/profile']
         }
@@ -102,33 +95,31 @@ function Sidebar({isOpen}) {
 
     useEffect(() => {
         let p = state.profile;
-        let isSubscribed = true;
+        console.log('p', p)
 
-        if (p !== undefined && p.details !== undefined && p.role === 'admin') {
+        if (p !== undefined && p.details !== undefined && p.role === 'Admin') {
+            setItems(SidebarItemsArray)
+        } else if (p !== undefined && p.details !== undefined && p.role === 'admin') {
             setItems(SidebarItemsArray)
         } else if (p !== undefined && p.details !== undefined && p.role === 'teacher') {
-            setItems(teacherItemsArray)
-            console.log('itemT,', items)
+            setItems(teacherItemsArray);
         } else if (p !== undefined && p.details !== undefined && p.role === 'parent') {
             setItems(parentItemsArray)
         }
-        return () => {
-            isSubscribed = false
-        }
-    }, [state.profile])
+    }, [state.profile]);
 
-    let show = "slide show fixed-display"
-    let noShow = "col-2 slide fixed-display"
+    let show = "slide show fixed-display";
+    let noShow = "col-2 slide fixed-display";
 
 
     return (
         <div className={isOpen ? show : noShow}
-             style={{backgroundColor: '#264d73', minHeight: '100%', margin: '0px', padding: '0px'}}>
-            <div>
+             style={{backgroundColor: '#265b5f', margin: '0px', padding: '0px'}}>
+            {(state.profile !== undefined && state.profile.details !== undefined) ? <div>
                 {items.map(e => {
-                    return <SidebarItem key={e.id} children={e}/>
+                    return <SidebarItem key={e.id} children={e} barIsOpen={isOpen} setBarIsOpen={setIsOpen}/>
                 })}
-            </div>
+            </div> : ''}
         </div>
     );
 }

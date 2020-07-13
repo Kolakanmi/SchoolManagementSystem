@@ -11,6 +11,6 @@ const PrivateRoute = ({ component: Component, ...rest }) => (
                 state: { from: props.location }*/
             }} />
     )} />
-)
+);
 
 export default PrivateRoute

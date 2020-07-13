@@ -1,63 +1,54 @@
-import React from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes, faEye, faEdit, faDumpster} from '@fortawesome/free-solid-svg-icons';
+import React, {useContext, useState} from 'react';
+import {AppContext} from "../../contexts/AppContext";
 
-function AllExpensesTable(props){
+function AllExpensesTable(){
+
+  const [state, dispatch] = useContext(AppContext);
+  let {expenses} = state
+
+  function mySort(a, b) {
+    if (a.uploadDate > b.uploadDate) return -1;
+    else if (a.uploadDate < b.uploadDate) return 1;
+    else return 0;
+
+  }
 
   return(
     <div className='flex-fill' style={{display: 'flex', overflowX: 'auto', fontSize: '0.65rem', fontWeight: 'bold'}}>
       <table className='table'>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Expense Type</th>
-            <th>Name</th>
+            <th>Recipient Name</th>
             <th>Amount</th>
-            <th>Status</th>
-            <th>Mobile No</th>
-            <th>Email</th>
-            <th>Payment Date</th>
-            <th>Action</th>
+            <th>Description</th>
+            <th>Session</th>
+            <th>Term</th>
+            <th>Date Paid</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1001</td>
-            <td>Salary</td>
-            <td>Kolakanmi Apanisile</td>
-            <td>20,000</td>
-            <td>Paid</td>
-            <td>08083330801</td>
-            <td>oladotunapanisile@gmail.com</td>
-            <td>01/01/2012</td>
-            <td className='flex-fill' style={{minWidth: '80px'}}>
-              <FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/>
-              <FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}/>
-              <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}}/>
-            </td>
+        {expenses.sort(mySort).map((e, i) => {
+          return <tr key={i}>
+            <td>{e.recipient}</td>
+            <td>{e.amountPaid}</td>
+            <td>{e.description}</td>
+            <td>{e.session}</td>
+            <td>{e.termId}</td>
+            <td>{e.uploadDate}</td>
           </tr>
+        })}
         </tbody>
       </table>
     </div>
   );
 }
 
-function AllExpenses(props){
+function AllExpenses(){
 
   return(
     <div className='d-flex flex-column flex-fill px-2 my-3 shadow' style={{backgroundColor: 'white', width: '100%', maxHeight: '300px', display: 'flex', overflowX: 'auto'}}>
       <div className='d-flex'>
         <strong className='align-self-center'>All Expenses List</strong>
-        <div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
-          <input className='form-control form-control-sm mr-1'/>
-          <input className='form-control form-control-sm mr-1'/>
-          <button className='form-control form-control-sm' style={{backgroundColor: '#264d73', color: 'white', maxWidth: '60px'}}>Search</button>
-        </div>
-        <span className='ml-auto align-self-center flex-wrap'>
-          <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} />
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
-          <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}}/>
-        </span>
         
       </div>
       <hr style={{margin:'0px', backgroundColor: 'black'}}/>

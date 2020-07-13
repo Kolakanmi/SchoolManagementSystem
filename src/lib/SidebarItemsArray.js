@@ -8,13 +8,13 @@ var SidebarItemsArray = [
   {
     id: 2,
     name: 'Students',
-    drops: ['All Students', 'Admission Form', 'Promotion'],
-    link: ['/students/all-students', '/students/add-student', '/students/student-promotion']
+    drops: ['All Students', 'Admission Form'],
+    link: ['/students/all-students', '/students/add-student']
   },
   { 
     id: 3,
     name: 'Teachers',
-    drops: ['All Teachers', 'Teacher Details', 'Add teacher'],
+    drops: ['All Teachers', 'Teacher Details', 'Add Teacher'],
     link: ['/teachers/all-teachers', '/teachers/teacher-details', '/teachers/add-teacher']
   },
   { 
@@ -30,8 +30,8 @@ var SidebarItemsArray = [
   { 
     id: 6,
     name: 'Finance',
-    drops: ['Fees', 'Other Income', 'Create Student Payment', 'All Expenses', 'Add Expenses'],
-    link: ['/finance/fees', '/finance/other-earnings', '/finance/create-fees-payment', '/finance/all-expenses', '/finance/add-expense']
+    drops: ['Fees', 'Create Student Payment', 'Add Expense', 'All Expenses'],
+    link: ['/finance/fees', '/finance/create-fees-payment', '/finance/add-expense', '/finance/all-expenses']
   },
   { 
     id: 7,
@@ -44,20 +44,14 @@ var SidebarItemsArray = [
     link: ['/subjects/all-subjects']
   },
   { 
-    id: 9,
-    name: 'Class Routine',
-    link: ['/']
-  },
-  { 
     id: 10,
     name: 'Attendance',
     link: ['/attendance']
   },
   { 
     id: 11,
-    name: 'Exam',
-    drops: ['Exam Schedule', 'Exam Grades'],
-    link: ['/', '/exams/grades']
+    name: 'Exam Grades',
+    link: ['/exams/grades']
   },
   { 
     id: 12,

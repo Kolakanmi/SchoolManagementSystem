@@ -1,21 +1,56 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes, faEye, faEdit, faDumpster} from '@fortawesome/free-solid-svg-icons';
-import { AppContext } from '../../contexts/AppContext';
+import {faAngleDown, faArrowDown, faDumpster, faEdit, faEye, faTimes} from '@fortawesome/free-solid-svg-icons';
+import {AppContext} from '../../contexts/AppContext';
 import useCollapseState from '../../lib/CollapseState';
-import { Link } from 'react-router-dom/cjs/react-router-dom';
+import {Link} from 'react-router-dom/cjs/react-router-dom';
 import axios from 'axios'
+import {faArrowUp} from "@fortawesome/free-solid-svg-icons/faArrowUp";
+import useAxiosConfig from "../../lib/AxiosConfig";
+import {Redirect} from 'react-router-dom'
 
 
 function AllTeachersTable({teachers, dispatch}){
 
+    let config = useAxiosConfig();
+
   async function deleteTeacher(teachId){
-    await axios.get('http://localhost:8080/delete-teacher/'+teachId)
+    await axios.delete('/v1/api/delete-teacher/'+teachId, config)
         .then(result => {
           if (result.status === 200){
-            let action = {type: 'DELETE_TEACHER', payload: teachId}
+            let action = {type: 'DELETE_TEACHER', payload: teachId};
             dispatch(action)
           }
+        })
+  }
+
+  async function makeTeacherAdmin(teachId) {
+    await axios.get('/v1/api/update-teacher-to-admin/'+teachId, config)
+        .then(result => {
+          if (result.status === 200){
+             dispatch({type: 'EDIT_TEACHER', payload: result.data})
+          } if (result.status === 401) {
+                return <Redirect to='/login'/>
+            }
+        })
+        .catch(error => {
+            console.log(error)
+            return <Redirect to='/login'/>
+        })
+  }
+
+  async function makeAdminTeacher(teachId) {
+    await axios.get('/v1/api/update-teacher-to-teacher/'+teachId, config)
+        .then(result => {
+          if (result.status === 200){
+              dispatch({type: 'EDIT_TEACHER', payload: result.data})
+          } if (result.status === 401) {
+              return <Redirect to='/login'/>
+            }
+        })
+        .catch(error => {
+            console.log(error)
+            return <Redirect to='/login'/>
         })
   }
 
@@ -42,7 +77,7 @@ function AllTeachersTable({teachers, dispatch}){
         <tbody>
           {teachers.sort((a,b) => {return a.employmentNumber - b.employmentNumber}).map(teacher => {return <tr key={teacher.employmentNumber}>
             <td>{teacher.employmentNumber}</td>
-            <td><img className='rounded' alt="Teacher" style={{width: '25px', height: '25px'}} src={teacher.picture}/></td>
+            <td><img className='rounded' alt="Teacher" style={{width: '25px', height: '25px'}} src={'/' + teacher.picture}/></td>
             <td>{teacher.firstName + ' ' + teacher.lastName}</td>
             <td>{teacher.gender}</td>
             <td>{teacher.subjects}</td>
@@ -57,6 +92,8 @@ function AllTeachersTable({teachers, dispatch}){
               <Link to={'/teachers/teacher-details/'+teacher.employmentNumber}><FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/></Link>
               <Link to={'/teachers/edit-teacher/'+teacher.employmentNumber}><FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}/></Link>
               <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}} onClick={() => deleteTeacher(teacher.employmentNumber)}/>
+              {(teacher.role === 'teacher') ? <FontAwesomeIcon icon={faArrowUp} color='blue' onClick={() => makeTeacherAdmin(teacher.employmentNumber)} /> : ''}
+              {(teacher.role === 'admin') ? <FontAwesomeIcon icon={faArrowDown} color='yellow' onClick={() => makeAdminTeacher(teacher.employmentNumber)}/> : ''}
             </td>
           </tr>})}
         </tbody>
@@ -65,39 +102,34 @@ function AllTeachersTable({teachers, dispatch}){
   );
 }
 
-function AllTeachers(props){
+function AllTeachers(){
 
   const [state, dispatch] = useContext(AppContext);
   const {teachers} = state;
   const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
 
+  console.log(teachers);
   const collapsableStyle = {
     display: isCollapse ? 'none': 'flex'
-  }
+  };
 
   const closeStyle = {
     display: isClosed ? 'none': 'flex'
-  }
+  };
 
   return(
     <div className='flex-column flex-fill px-2 my-3 shadow' style={{...closeStyle,backgroundColor: 'white', width: '100%', maxHeight: '300px', overflowX: 'auto'}}>
       <div className='d-flex'>
         <strong className='align-self-center'>All Teachers</strong>
-       {/* <div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
-          <input className='form-control form-control-sm mr-1'/>
-          <input className='form-control form-control-sm mr-1'/>
-          <button className='form-control form-control-sm' style={{backgroundColor: '#264d73', color: 'white', maxWidth: '60px'}}>Search</button>
-        </div>*/}
         <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={collapseButton} />
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={closeButton}/>
         </span>
         
       </div>
       <hr style={{margin:'0px', backgroundColor: 'black'}}/>
       <div style={{...collapsableStyle, overflowX: 'auto'}}>
-        <AllTeachersTable teachers={teachers} dispatch={dispatch}/>  
+        <AllTeachersTable teachers={teachers} dispatch={dispatch}/>
       </div>
 
     </div>

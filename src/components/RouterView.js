@@ -1,5 +1,5 @@
-import React, {useEffect, useContext} from 'react';
-import {Route, Switch, withRouter, Link} from 'react-router-dom';
+import React from 'react';
+import {Route} from 'react-router-dom';
 import Dashboard from './dashboard/Dashboard';
 import StudentsDashboard from './dashboard/StudentsDashboard';
 import ParentsDashboard from './dashboard/ParentsDashboard';
@@ -11,7 +11,6 @@ import AllTeachers from './teachers/AllTeachers';
 import TeacherDetails from './teachers/TeacherDetails';
 import AddTeacher from './teachers/AddTeacher';
 import AllParents from './parents/AllParents';
-import AllBooks from './library/AllBooks';
 import AddBook from './library/AddBook';
 import Fees from './finance/Fees';
 import OtherEarnings from './finance/OtherEarnings';
@@ -19,25 +18,25 @@ import CreateFeesPayment from './finance/CreateFeesPayment';
 import AllExpenses from './finance/AllExpenses';
 import AddExpense from './finance/AddExpense';
 import AddClass from './class/AddClass';
-import AllClasses from './class/AllClasses';
 import Subjects from './subjects/Subjects';
 import Grades from './exams/Grades';
 import Transport from './transport/Transport';
 import Hostel from './hostel/Hostel';
-import Notice from './notice/Notice';
+import {Notice} from './notice/Notice';
 import Profile from './profile/Profile';
-import LoginPage from './Login';
-import {AppContext} from '../contexts/AppContext';
-import axios from 'axios'
 import Attendance from "./attendance/Attendance";
-import PrivateRoute from "./PrivateRoute";
-import Sidebar from "./Sidebar";
+import TeacherDashboard from "./dashboard/TeacherDashboard";
+import ParentDetails from "./parents/ParentDetails";
+import GradeViewForParents from "./exams/GradeViewForParents";
 
 function RouterView({isOpen, setIsOpen}) {
 
+        let disabledStyle = {
+                overflow: isOpen ? 'hidden !important' : 'auto !important'
+        }
 
     return (
-        <div className='px-sm-3 py-4' onClick={() => {
+        <div className='px-sm-3 py-4' style={disabledStyle} onClick={() => {
             if (isOpen === true) {
               setIsOpen(!isOpen)
             }
@@ -45,6 +44,7 @@ function RouterView({isOpen, setIsOpen}) {
 
                 <Route exact path='/' component={Dashboard}/>
                 <Route exact path='/dashboard' component={Dashboard}/>
+                <Route exact path='/dashboard/teacher' component={TeacherDashboard} />
                 <Route exact path='/dashboard/student' component={StudentsDashboard}/>
                 <Route exact path='/dashboard/parent' component={ParentsDashboard}/>
                 <Route exact path='/students/all-students' component={AllStudents}/>
@@ -57,6 +57,7 @@ function RouterView({isOpen, setIsOpen}) {
                 <Route exact path='/teachers/add-teacher' component={AddTeacher}/>
                 <Route exact path='/teachers/edit-teacher/:id' component={AddTeacher}/>
                 <Route exact path='/parents' component={AllParents}/>
+                <Route exact path='/parents/parent-details/:id' component={ParentDetails} />
                 <Route exact path='/library/add-book' component={AddBook}/>
                 <Route exact path='/library/edit-book/:id' component={AddBook}/>
                 <Route exact path='/attendance' component={Attendance}/>
@@ -68,6 +69,7 @@ function RouterView({isOpen, setIsOpen}) {
                 <Route exact path='/class/add-class' component={AddClass}/>
                 <Route exact path='/subjects/all-subjects' component={Subjects}/>
                 <Route exact path='/exams/grades' component={Grades}/>
+                <Route exact path='/exams/result' component={GradeViewForParents}/>
                 <Route exact path='/transport' component={Transport}/>
                 <Route exact path='/hostel' component={Hostel}/>
                 <Route exact path='/notice' component={Notice}/>

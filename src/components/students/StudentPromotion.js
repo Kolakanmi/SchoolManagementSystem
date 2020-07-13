@@ -1,7 +1,7 @@
 import React from 'react';
 import SectionHeader from '../dashboard/SectionHeader';
 
-function StudentPromotion(props){
+function StudentPromotion(){
 
   return(
     <div style={{backgroundColor: 'white'}}>
@@ -52,7 +52,7 @@ function StudentPromotion(props){
         
       </div>
       <div className='mx-2'>
-        <button>Search</button>
+        <button style={{backgroundColor: 'teal'}}>Search</button>
       </div>
     </div>
   );

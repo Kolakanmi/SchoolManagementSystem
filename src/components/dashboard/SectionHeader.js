@@ -1,6 +1,6 @@
 import React from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes} from '@fortawesome/free-solid-svg-icons'
+import {faAngleDown, faTimes} from '@fortawesome/free-solid-svg-icons'
 
 function SectionHeader(props){
 
@@ -13,7 +13,6 @@ function SectionHeader(props){
         <strong>{sTitle}</strong>
         <span className='ml-auto'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={toggleCollapse} />
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={toggleClose} />
         </span>
         

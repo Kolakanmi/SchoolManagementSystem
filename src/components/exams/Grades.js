@@ -1,40 +1,39 @@
-import React, {useState, useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import SectionHeader from '../dashboard/SectionHeader';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {
-  faSync,
-  faAngleDown,
-  faTimes,
-  faEye,
-  faEdit,
-  faDumpster,
-  faDumpsterFire
-} from '@fortawesome/free-solid-svg-icons';
+import {faAngleDown, faDumpster, faTimes} from '@fortawesome/free-solid-svg-icons';
 import useCollapseState from '../../lib/CollapseState';
-import { AppContext } from '../../contexts/AppContext';
-import {Redirect} from 'react-router-dom';
-import {Col, Row, FormGroup, Form, Label, Input} from 'reactstrap';
+import {AppContext} from '../../contexts/AppContext';
+import {Form, FormGroup, Input, Label, Row} from 'reactstrap';
 import Button from 'reactstrap/lib/Button';
-import {returnClassesArray, returnSectionArray, returnSubjectsArray} from "../../lib/ReturnNeededArray";
+import {returnClassesArray, returnSubjectsArray} from "../../lib/ReturnNeededArray";
 import axios from "axios";
+import FormFeedback from "reactstrap/es/FormFeedback";
+import useAxiosConfig from "../../lib/AxiosConfig";
+import {Redirect} from 'react-router-dom'
 
 
 function GradeCheckout({gradeSearch, setGradeSearch}) {
-  const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState()
-  const [state] = useContext(AppContext)
+  const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
+  const [state] = useContext(AppContext);
   const [searchParams, setSearchParams] = useState(gradeSearch);
+  const [fieldErrors, setFieldErrors] = useState({});
   let {grades, subjects, classes} = state;
   const collapsableStyle = {
     display: isCollapse ? 'none' : 'block'
-  }
+  };
 
   const closeStyle = {
     display: isClosed ? 'none' : 'block'
-  }
+  };
 
   function onInputChange(e) {
     const target = e.target;
     searchParams[target.name] = target.value;
+    searchParams.year = Number(searchParams.year);
+    let error = validate(searchParams);
+    setFieldErrors(error);
+    if (Object.keys(error).length) return;
     setSearchParams({...searchParams});
   }
 
@@ -71,7 +70,8 @@ function GradeCheckout({gradeSearch, setGradeSearch}) {
                 </FormGroup>
                 <FormGroup className='flex-fill mr-3'>
                   <Label>Select Year</Label>
-                  <Input name='year' value={searchParams.year} onChange={onInputChange}/>
+                  <Input invalid={fieldErrors.year === true} name='year' value={searchParams.year} onChange={onInputChange}/>
+                  <FormFeedback invalid>Insert Year As A Number</FormFeedback>
                 </FormGroup>
                 <FormGroup className='flex-fill mr-3'>
                   <Label>Select Term</Label>
@@ -82,7 +82,7 @@ function GradeCheckout({gradeSearch, setGradeSearch}) {
                   </Input>
                 </FormGroup>
               </Row>
-              <Button style={{backgroundColor: '#264d73', color: 'white'}}>Search</Button>
+              <Button style={{backgroundColor: 'teal', color: 'white'}}>Search</Button>
             </Form>
           </div>
         </div>
@@ -90,36 +90,50 @@ function GradeCheckout({gradeSearch, setGradeSearch}) {
   )
 }
 
+function validate(search) {
+  let error = {};
+  if (!search.year || isNaN(search.year)) error.year = true;
+
+  return error
+}
+
 
 function GradeTable({mg, subject, clas, term, year}) {
-  const [state, dispatch] = useContext(AppContext)
+  const [state, dispatch] = useContext(AppContext);
   const [updater, setUpdater] = useState(false);
   const [trial, setTrial] = useState({
     classWork: 0,
     test: 0,
     exam: 0,
     assignment: 0
-  })
-  console.log("mgInitial", mg)
+  });
+  console.log("mgInitial", mg);
+  let config = useAxiosConfig();
 
   function handleSaveGrade(){
     async function postGrade() {
-      console.log('mg inside async,', mg)
+      console.log('mg inside async,', mg);
       let action;
-      await axios.post('http://localhost:8080/v1/api/post-grade', JSON.stringify(mg))
+      await axios.post('/v1/api/post-grade', JSON.stringify(mg), config)
           .then(result => {
             if (result.status === 200) {
-              action = {type: 'EDIT_GRADE', payload: result.data};
-              console.log('AddGrade')
+              action = {type: 'EDIT_GRADES', payload: result.data};
+              console.log('EditGrade');
               dispatch(action);
+            } if (result.status === 401) {
+              return <Redirect to='/login'/>
             }
+          })
+          .catch(error => {
+            console.log(error)
+            return <Redirect to='/login'/>
           })
     }
     postGrade();
   }
 
   function deleteGrade(i) {
-    mg.splice(i, 1)
+    mg.splice(i, 1);
     setTrial({...trial})
   }
 
@@ -146,9 +160,9 @@ function GradeTable({mg, subject, clas, term, year}) {
             
             function handleChange(x, event) {
               trial[event.target.name] = event.target.value;
-              mg[x][event.target.name] = Number(trial[event.target.name])
-              mg[x].total = (Number(mg[x].classWork) + Number(mg[x].assignment) + Number(mg[x].test) + Number(mg[x].exam))
-              setTrial({...trial})
+              mg[x][event.target.name] = Number(trial[event.target.name]);
+              mg[x].total = (Number(mg[x].classWork) + Number(mg[x].assignment) + Number(mg[x].test) + Number(mg[x].exam));
+              setTrial({...trial});
               //mg[x][event.target.name] = trial[event.target.name]
               console.log(mg)
 
@@ -169,6 +183,7 @@ function GradeTable({mg, subject, clas, term, year}) {
             </tr>
           })}
           </tbody>
+          <Button style={{backgroundColor: 'teal'}} onClick={handleSaveGrade}>SAVE GRADES</Button>
         </table>
       </div>
   )
@@ -176,7 +191,7 @@ function GradeTable({mg, subject, clas, term, year}) {
 }
 
 function Grades() {
-  const [state, dispatch] = useContext(AppContext)
+  const [state, dispatch] = useContext(AppContext);
   function createClassGradesBySubject(stud, sub, clas, term, year = new Date().getFullYear()) {
     let subjectGrade = [];
     let classStudents = stud.filter(s => {
@@ -201,7 +216,7 @@ function Grades() {
         test: 0,
         exam: 0,
         total: 0,
-      }
+      };
       subjectGrade.push(gradeObject)
     }
     return subjectGrade;
@@ -224,31 +239,36 @@ function Grades() {
     subject: '',
     year: new Date().getFullYear(),
     term: getCurrentTerm()
-  })
+  });
 
   let {grades, students} = state;
   let mg = grades;
+
+  let currentStudents = students.filter(s => {
+    return s.class !== 'Archived'
+  });
+
   if (grades.length !== 0 && gradeSearch.class !== '') {
     mg = grades.filter(g => {
       return g.class === gradeSearch.class && g.year === gradeSearch.year && g.term === gradeSearch.term && g.subject === gradeSearch.subject;
     })
   }
   if (grades.length !== 0 && mg.length === 0 && gradeSearch.subject !== '' && gradeSearch.class !== '') {
-    mg = createClassGradesBySubject(students, gradeSearch.subject, gradeSearch.class, gradeSearch.term, gradeSearch.year)
+    mg = createClassGradesBySubject(currentStudents, gradeSearch.subject, gradeSearch.class, gradeSearch.term, gradeSearch.year)
   }
   if (grades.length === 0) {
-    mg = createClassGradesBySubject(students, gradeSearch.subject, gradeSearch.class, gradeSearch.term, gradeSearch.year)
+    mg = createClassGradesBySubject(currentStudents, gradeSearch.subject, gradeSearch.class, gradeSearch.term, gradeSearch.year)
   }
 
   const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
 
   const collapsableStyle = {
     display: isCollapse ? 'none' : 'flex'
-  }
+  };
 
   const closeStyle = {
     display: isClosed ? 'none' : 'flex'
-  }
+  };
 
   return(
       <div className='d-block px-2'>
@@ -261,7 +281,6 @@ function Grades() {
               + ", " + gradeSearch.year}</strong>
             <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={collapseButton}/>
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={closeButton}/>
         </span>
 

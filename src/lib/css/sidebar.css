@@ -1,10 +1,16 @@
 .dropitem:hover {
-  color: grey !important;
+  color: #FFD700 !important;
   text-decoration: none;
   background-color: inherit;
 }
-.dropitem:focus, .dropitem:active {
-  color: #ffcc00 !important;
+.dropitem:focus {
+  color: #FFD700 !important;
+  text-decoration: none;
+  background-color: inherit;
+}
+
+.dropitem:active {
+  color: #FFD700 !important;
   text-decoration: none;
   background-color: inherit;
 }
@@ -13,13 +19,15 @@
   .slide {
     width: 50%;
     max-width: 200px;
-    height: 100vh;
+    height: 80vh;
     z-index: 1000;
     position: fixed;
     left: -300px;
-    top: 70px;
+    top: 50px;
     transition: left 1s;
     background-color: #1D2B3B;
+    overflow: scroll;
+    font-size: 1.1rem;
   }
 
   .show {
@@ -31,4 +39,5 @@
   .fixed-display {
     width: 16.67%;
   }
+
 }

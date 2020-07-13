@@ -1,31 +1,38 @@
-import React, {useContext, useState, useEffect} from 'react';
+import React, {useContext, useState} from 'react';
 import SectionHeader from '../dashboard/SectionHeader';
 import useCollapseState from "../../lib/CollapseState";
-import {Form, Row, FormGroup, Label, Input, Button} from "reactstrap";
+import {Redirect} from 'react-router-dom'
+import {Button, Form, FormGroup, Input, Label, Row} from "reactstrap";
 import {AppContext} from "../../contexts/AppContext";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCheck, faTimes, faAngleDown, faSync} from '@fortawesome/free-solid-svg-icons';
+import {faAngleDown, faCheck, faTimes} from '@fortawesome/free-solid-svg-icons';
 import axios from "axios";
 import {returnClassesArray, returnSectionArray} from "../../lib/ReturnNeededArray";
+import FormFeedback from "reactstrap/es/FormFeedback";
 
 
 function AttendanceCheckout({attendanceSearch, setAttendanceSearch}) {
 
-    const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState()
-    const [state] = useContext(AppContext)
+    const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
+    const [state] = useContext(AppContext);
     const [searchParams, setSearchParams] = useState(attendanceSearch);
+    const [fieldErrors, setFieldErrors] = useState({});
     let {classes} = state;
     const collapsableStyle = {
         display: isCollapse ? 'none' : 'block'
-    }
+    };
 
     const closeStyle = {
         display: isClosed ? 'none' : 'block'
-    }
+    };
 
     function onInputChange(e) {
         const target = e.target;
         searchParams[target.name] = target.value;
+        searchParams.year = Number(searchParams.year);
+        let error = validate(searchParams);
+        setFieldErrors(error);
+        if (Object.keys(error).length) return;
         setSearchParams({...searchParams});
     }
 
@@ -62,7 +69,8 @@ function AttendanceCheckout({attendanceSearch, setAttendanceSearch}) {
                             </FormGroup>
                             <FormGroup className='flex-fill mr-3'>
                                 <Label>Select Year</Label>
-                                <Input name='year' value={searchParams.year} onChange={onInputChange}/>
+                                <Input invalid={fieldErrors.year === true} name='year' value={searchParams.year} onChange={onInputChange}/>
+                                <FormFeedback invalid>Insert Year As A Number</FormFeedback>
                             </FormGroup>
                             <FormGroup className='flex-fill mr-3'>
                                 <Label>Select Month</Label>
@@ -82,7 +90,7 @@ function AttendanceCheckout({attendanceSearch, setAttendanceSearch}) {
                                 </Input>
                             </FormGroup>
                         </Row>
-                        <Button style={{backgroundColor: '#264d73', color: 'white'}}>Search</Button>
+                        <Button style={{backgroundColor: 'teal', color: 'white'}}>Search</Button>
                     </Form>
                 </div>
             </div>
@@ -91,33 +99,52 @@ function AttendanceCheckout({attendanceSearch, setAttendanceSearch}) {
 
 }
 
+function validate(search) {
+    let error = {};
+    if (!search.year || isNaN(search.year)) error.year = true;
+
+    return error
+}
+
 function AttendanceTable({ma, month, year, clas, section} = {
     month: new Date().getMonth(), year: new Date().getFullYear(),
     clas: "", section: ""
 }) {
-    const [state, dispatch] = useContext(AppContext)
+    const [state, dispatch] = useContext(AppContext);
     const [updater, setUpdater] = useState(false);
-    console.log("maInitial", ma)
+    let {profile} = state;
+    let config = {
+        headers: {
+            'Authorization': profile.token
+        }
+    };
+    console.log("maInitial", ma);
 
     function isSaturdayOrSunday(year, month, i) {
         let saturday = 6;
         let sunday = 0;
-        let date = new Date(year, month, i).getDay()
+        let date = new Date(year, month, i).getDay();
         return date === saturday || date === sunday;
     }
 
     function handleSaveAttendance(){
         async function postAttendance() {
-            console.log('ma inside async,', ma)
+            console.log('ma inside async,', ma);
             let action;
-            await axios.post('http://localhost:8080/v1/api/post-attendance', JSON.stringify(ma))
+            await axios.post('/v1/api/post-attendance', JSON.stringify(ma), config)
                     .then(result => {
                         if (result.status === 200) {
                             action = {type: 'EDIT_ATTENDANCE', payload: result.data};
-                            console.log('AddAttendance')
+                            console.log('AddAttendance');
                             dispatch(action);
+                        } if (result.status === 401) {
+                            return <Redirect to='/login'/>
                         }
                     })
+                .catch(error => {
+                    console.log(error)
+                    return <Redirect to='/login'/>
+                })
         }
         postAttendance();
     }
@@ -146,7 +173,7 @@ function AttendanceTable({ma, month, year, clas, section} = {
 
                                 if (isSaturdayOrSunday(m.year, m.month, i + 1) !== true) {
                                     if (ma[x].attendanceSlice[i] === '1') {
-                                        console.log("monthly[]", ma)
+                                        console.log("monthly[]", ma);
                                         //monthlyAttendance[x].attendanceSlice[i] = '1';
                                         ma[x].attendanceSlice[i] = '0';
                                         //s = '1';
@@ -166,7 +193,7 @@ function AttendanceTable({ma, month, year, clas, section} = {
                     </tr>
                 })}
                 </tbody>
-                <Button onClick={handleSaveAttendance}>SAVE</Button>
+                <Button style={{backgroundColor: 'teal'}} onClick={handleSaveAttendance}>SAVE</Button>
             </table>
         </div>
     )
@@ -176,7 +203,7 @@ function AttendanceTable({ma, month, year, clas, section} = {
 
 function Attendance() {
 
-    const [state, dispatch] = useContext(AppContext)
+    const [state, dispatch] = useContext(AppContext);
 
     function createClassAttendance(stud, clas, section = "", month = new Date().getMonth(), year = new Date().getFullYear()) {
         let classAttendance = [];
@@ -188,7 +215,7 @@ function Attendance() {
             } else {
                 return (s.class === clas && s.section === section)
             }
-        })
+        });
         for (let i = 0; i < classStudents.length; i++) {
             let numberOfDays = new Date(year, month, 0).getDate();
             let att = new Array(numberOfDays).fill(" ");
@@ -200,7 +227,7 @@ function Attendance() {
                 year: year,
                 month: month,
                 attendanceSlice: att
-            }
+            };
             classAttendance.push(attendObject);
         }
         return classAttendance;
@@ -214,26 +241,30 @@ function Attendance() {
     });
     let {attendance, students} = state;
     let ma = attendance;
+    let currentStudents = students.filter(s => {
+        return s.class !== 'Archived'
+    });
+
     if (attendance.length !== 0 && attendanceSearch.class !== ''){
         ma = attendance.filter(a => {
             return a.class === attendanceSearch.class && a.year === attendanceSearch.year && a.month === attendanceSearch.month;
         })
     }
     if (attendance.length !== 0 && ma.length === 0 && attendanceSearch.class !== ''){
-        ma = createClassAttendance(students, attendanceSearch.class, attendanceSearch.section, attendanceSearch.month, attendanceSearch.year);
+        ma = createClassAttendance(currentStudents, attendanceSearch.class, attendanceSearch.section, attendanceSearch.month, attendanceSearch.year);
     }
     if (attendance.length === 0) {
-        ma = createClassAttendance(students, attendanceSearch.class, attendanceSearch.section, attendanceSearch.month, attendanceSearch.year);
+        ma = createClassAttendance(currentStudents, attendanceSearch.class, attendanceSearch.section, attendanceSearch.month, attendanceSearch.year);
     }
     const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
 
     const collapsableStyle = {
         display: isCollapse ? 'none' : 'flex'
-    }
+    };
 
     const closeStyle = {
         display: isClosed ? 'none' : 'flex'
-    }
+    };
 
     return (
         <div className='d-block'>
@@ -247,7 +278,6 @@ function Attendance() {
                         + ", " + attendanceSearch.year}</strong>
                     <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={collapseButton}/>
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={closeButton}/>
         </span>
 
@@ -268,7 +298,7 @@ function Attendance() {
 function getMonthDates(month = new Date().getMonth(), year = new Date().getFullYear()) {
     let dates = [];
     let numberOfDays = new Date(year, month, 0).getDate();
-    console.log(numberOfDays)
+    console.log(numberOfDays);
     for (let i = 0; i < numberOfDays; i++) {
         dates.push(i + 1);
     }

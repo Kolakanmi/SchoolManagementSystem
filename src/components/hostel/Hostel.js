@@ -1,16 +1,18 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import SectionHeader from '../dashboard/SectionHeader';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSync, faAngleDown, faTimes, faEye, faEdit, faDumpster} from '@fortawesome/free-solid-svg-icons';
+import {faAngleDown, faDumpster, faEdit, faEye, faTimes} from '@fortawesome/free-solid-svg-icons';
 import useCollapseState from '../../lib/CollapseState';
 import {AppContext} from '../../contexts/AppContext';
-import {Redirect} from 'react-router-dom';
-import {Col, Row, FormGroup, Form, Label, Input} from 'reactstrap';
+import {Form, FormGroup, Input, Label, Row} from 'reactstrap';
 import Button from 'reactstrap/lib/Button';
 import axios from "axios";
+import FormFeedback from "reactstrap/es/FormFeedback";
+import useAxiosConfig from "../../lib/AxiosConfig";
+import {Redirect} from 'react-router-dom'
 
 
-function AllHostelTable({hostel, dispatch, onClickEdit}) {
+function AllHostelTable({hostel, dispatch, onClickEdit, deleteHostel}) {
 
     return (
         <div className='flex-fill'
@@ -38,7 +40,7 @@ function AllHostelTable({hostel, dispatch, onClickEdit}) {
                             <FontAwesomeIcon className='mr-1' icon={faEye} style={{color: 'grey'}}/>
                             <FontAwesomeIcon className='mr-1' icon={faEdit} style={{color: 'green'}}
                                              onClick={() => onClickEdit(host)}/>
-                            <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}}/>
+                            <FontAwesomeIcon className='mr-1' icon={faDumpster} style={{color: 'red'}} onClick={() => deleteHostel(host)}/>
                         </td>
                     </tr>
                 })}
@@ -48,17 +50,17 @@ function AllHostelTable({hostel, dispatch, onClickEdit}) {
     );
 }
 
-function AllHostel({hostel, dispatch, onClickEdit}) {
+function AllHostel({hostel, dispatch, onClickEdit, deleteHostel}) {
 
     const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
 
     const collapsableStyle = {
         display: isCollapse ? 'none' : 'block'
-    }
+    };
 
     const closeStyle = {
         display: isClosed ? 'none' : 'block'
-    }
+    };
 
     return (
         <div className='flex-column flex-fill px-2 shadow'
@@ -74,21 +76,20 @@ function AllHostel({hostel, dispatch, onClickEdit}) {
                 </div>*/}
                 <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} onClick={collapseButton}/>
-          <FontAwesomeIcon icon={faSync} className='ml-2' size='sm' style={{color: 'green'}}/>
           <FontAwesomeIcon icon={faTimes} className='ml-2' size='sm' style={{color: 'red'}} onClick={closeButton}/>
         </span>
 
             </div>
             <hr style={{margin: '0px', backgroundColor: 'black'}}/>
             <div style={{...collapsableStyle, overflowX: 'auto'}}>
-                <AllHostelTable hostel={hostel} dispatch={dispatch} onClickEdit={onClickEdit}/>
+                <AllHostelTable hostel={hostel} dispatch={dispatch} onClickEdit={onClickEdit} deleteHostel={deleteHostel}/>
             </div>
 
         </div>
     );
 }
 
-function Hostel(props) {
+function Hostel() {
 
     const [state, dispatch] = useContext(AppContext);
 
@@ -96,12 +97,14 @@ function Hostel(props) {
 
     let hostel = state.hostels;
 
+    let config = useAxiosConfig();
+
     const initialHostel = {
         name: '',
         roomNumber: '',
-        numberOfBedsInRoom: 0,
-        costOfBed: 0,
-    }
+        numberOfBedsInRoom: 1,
+        costOfBed: 1,
+    };
 
 
     const [isCollapse, collapseButton, isClosed, closeButton] = useCollapseState();
@@ -113,24 +116,31 @@ function Hostel(props) {
 
 
     const [newHostel, setNewHostel] = useState(initialHostel);
-
+    const [fieldErrors, setFieldErrors] = useState({});
     function onClickEdit(x) {
         setEditableHostelId(true);
         setNewHostel({...x});
     }
 
-    useEffect(() => {
-
-    })
+    async function deleteHostel(x) {
+        axios.delete('/v1/api/delete-hostel/'+ x.name + '/' + x.roomNumber, config)
+            .then((response) => {
+                if (response.status === 200) {
+                    let action = {type: 'DELETE_HOSTEL', payload: x};
+                    console.log('DeleteParent');
+                    dispatch(action);
+                }
+            })
+    }
 
 
     const collapsableStyle = {
         display: isCollapse ? 'none' : 'block'
-    }
+    };
 
     const closeStyle = {
         display: isClosed ? 'none' : 'block'
-    }
+    };
 
     function onInputChange(e) {
         const target = e.target;
@@ -145,27 +155,38 @@ function Hostel(props) {
          newHostel.id = editableHostelId ? newHostel.id : date.toUTCString();*/
         newHostel.numberOfBedsInRoom = Number(newHostel.numberOfBedsInRoom);
         newHostel.costOfBed = Number(newHostel.costOfBed);
+        let error = validate(newHostel);
+        setFieldErrors(error);
+        if (Object.keys(error).length) return;
         setNewHostel({...newHostel});
+
+
 
         async function postHostel() {
             let action;
             if (editableHostelId) {
-                await axios.put('http://localhost:8080/v1/api/update-hostel', newHostel)
+                await axios.put('/v1/api/update-hostel', JSON.stringify(newHostel), config)
                     .then(result => {
                         if (result.status === 200) {
                             action = {type: 'EDIT_HOSTEL', payload: result.data};
-                            console.log('EditHos')
+                            console.log('EditHos');
                             dispatch(action);
                         }
                     })
             } else {
-                await axios.post('http://localhost:8080/v1/api/post-hostel', JSON.stringify(newHostel))
+                await axios.post('/v1/api/post-hostel', JSON.stringify(newHostel), config)
                     .then(result => {
                         if (result.status === 200) {
                             action = {type: 'ADD_HOSTEL', payload: result.data};
-                            console.log('Addhostel')
+                            console.log('Addhostel');
                             dispatch(action);
+                        } if (result.status === 401) {
+                            return <Redirect to='/login'/>
                         }
+                    })
+                    .catch(error => {
+                        console.log(error)
+                        return <Redirect to='/login'/>
                     })
             }
         }
@@ -177,14 +198,15 @@ function Hostel(props) {
 
     return (
         <div className='d-flex flex-wrap'>
-            {(profile.role === 'admin') ?  <div style={{...closeStyle, backgroundColor: 'white'}} className='shadow mr-2 mb-4'>
+            {(profile.role === 'Admin' || 'admin') ?  <div style={{...closeStyle, backgroundColor: 'white'}} className='shadow mr-2 mb-4'>
                 <SectionHeader sTitle={'Add New Room'} toggleCollapse={collapseButton} toggleClose={closeButton}/>
                 <div className='px-3' style={{...collapsableStyle}}>
                     <Form className='px-2' onSubmit={handleAddHostel}>
                         <Row className='d-flex flex-wrap flex-column'>
                             <FormGroup className='flex-fill mr-3'>
                                 <Label>Hostel Name</Label>
-                                <Input name='name' value={newHostel.name} onChange={onInputChange}/>
+                                <Input invalid={fieldErrors.name === true} name='name' value={newHostel.name} onChange={onInputChange}/>
+                                <FormFeedback invalid>Insert Hostel Name</FormFeedback>
                             </FormGroup>
                             <FormGroup className='flex-fill mr-3'>
                                 <Label>Room Number</Label>
@@ -192,23 +214,34 @@ function Hostel(props) {
                             </FormGroup>
                             <FormGroup className='flex-fill mr-3'>
                                 <Label>Number Of Beds In Room</Label>
-                                <Input name='numberOfBedsInRoom' value={newHostel.numberOfBedsInRoom}
+                                <Input invalid={fieldErrors.numberOfBedsInRoom === true} name='numberOfBedsInRoom' value={newHostel.numberOfBedsInRoom}
                                        onChange={onInputChange}/>
+                                <FormFeedback invalid>Insert Number Of Beds As A Number</FormFeedback>
                             </FormGroup>
                             <FormGroup className='flex-fill mr-3'>
                                 <Label>Cost Per Bed</Label>
-                                <Input name='costOfBed' value={newHostel.costOfBed} onChange={onInputChange}/>
+                                <Input invalid={fieldErrors.costOfBed === true} name='costOfBed' value={newHostel.costOfBed} onChange={onInputChange}/>
+                                <FormFeedback invalid>Insert Cost Of Bed As A Number</FormFeedback>
                             </FormGroup>
                         </Row>
-                        <Button type='submit'>Save</Button>
+                        <Button style={{backgroundColor: 'teal'}} type='submit'>Save</Button>
                     </Form>
                 </div>
             </div> : <div></div>}
             <div className='flex-fill' style={{display: 'flex', overflowX: 'auto'}}>
-                <AllHostel hostel={hostel} dispatch={dispatch} onClickEdit={onClickEdit}/>
+                <AllHostel hostel={hostel} dispatch={dispatch} onClickEdit={onClickEdit} deleteHostel={deleteHostel}/>
             </div>
         </div>
     );
 }
 
 export default Hostel;
+
+function validate(search) {
+    let error = {};
+    if (!search.name || search.name === '') error.name = true
+    if (isNaN(search.numberOfBedsInRoom)) error.numberOfBedsInRoom = true;
+    if (isNaN(search.costOfBed)) error.costOfBed = true;
+
+    return error
+}

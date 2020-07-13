@@ -45,7 +45,7 @@ function OtherEarnings(props){
         <div className='d-flex align-items-center mx-2 my-sm-2 m-auto'>
           <input className='form-control form-control-sm mr-1'/>
           <input className='form-control form-control-sm mr-1'/>
-          <button className='form-control form-control-sm' style={{backgroundColor: '#264d73', color: 'white', maxWidth: '60px'}}>Search</button>
+          <button className='form-control form-control-sm' style={{backgroundColor: '#265b5f', color: 'white', maxWidth: '60px'}}>Search</button>
         </div>
         <span className='ml-auto align-self-center flex-wrap'>
           <FontAwesomeIcon icon={faAngleDown} className='ml-2' style={{color: '#ff9900'}} />
